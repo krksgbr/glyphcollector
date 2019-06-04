@@ -1,0 +1,9 @@
+dist
+result
+node_modules
+out
+elm-stuff/
+.cache/
+backend/.stack-work
+backend/dist*
+.elm

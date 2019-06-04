@@ -1,0 +1,1 @@
+(import ./glyphcollector.nix).shell
