@@ -160,4 +160,3 @@ main :: IO ()
 main = do
     putStrLn "WS server running on 9160"
     WS.runServer "0.0.0.0" 9160 app
--- handleRequest respond req pendingJob
