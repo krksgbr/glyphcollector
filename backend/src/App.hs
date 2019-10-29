@@ -159,4 +159,4 @@ app pending = do
 main :: IO ()
 main = do
     putStrLn "WS server running on 9160"
-    WS.runServer "0.0.0.0" 9160 app
+    WS.runServer "127.0.0.1" 9160 app
