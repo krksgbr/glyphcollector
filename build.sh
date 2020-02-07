@@ -4,19 +4,34 @@ IFS=$'\n\t'
 
 OS=`uname -s`
 
+if [[ "$OS" == *"MINGW"* ]]; then
+   OS="WIN"
+fi
 
-rm -rf ./backend/dist-newstyle
+BACKEND="$(pwd)/backend"
+
+
 rm -rf ./dist
 rm -rf ./out
+
+# Build backend
+if [[ "$OS" == "WIN" ]]; then
+   ./windows/build-backend.sh $BACKEND
+   HS_EXE=`find $BACKEND/.stack-work/dist -name glyphcollector.exe`
+else 
+   rm -rf ./backend/dist-newstyle
+
+   cd backend
+   cabal build glyphcollector
+   cd ..
+
+   HS_EXE=`find $(pwd)/backend/dist-newstyle -type f -name glyphcollector`
+
+   node ./collect-backend-deps.js --exe=$HS_EXE --outdir=`pwd`/dist
+fi
+
 mkdir dist
-
-cd backend
-cabal build glyphcollector
-cd ..
-
-hsExe=`find $(pwd)/backend/dist-newstyle -type f -name glyphcollector`
-
-node ./collect-backend-deps.js --exe=$hsExe --outdir=`pwd`/dist
+cp $HS_EXE dist
 
 yarn
 
