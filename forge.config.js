@@ -2,6 +2,7 @@ const path = require("path");
 
 module.exports = {
   packagerConfig: {
+    ignore: [/backend/],
     icon: (function() {
       switch (process.platform) {
         case "darwin":
