@@ -1,7 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Main where
+module GenerateElm where
 
 import qualified Elm
 import qualified Project
