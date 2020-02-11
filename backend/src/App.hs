@@ -13,7 +13,7 @@ module App where
 
 import           Control.Concurrent
 import qualified Control.Exception
-import           Control.Exception              ( SomeException )
+import           Control.Exception              ( SomeException, throwIO )
 import           Control.Monad                  ( foldM
                                                 , forever
                                                 )
@@ -32,6 +32,7 @@ import           GHC.Generics
 import           Elm
 import qualified Repo
 import Exception (catchAny)
+import System.Exit (die)
 
 data Model = Model { mProject :: Maybe Project.Model
                      , mRepo :: Repo.Model
@@ -145,6 +146,10 @@ app pending = do
     conn         <- WS.acceptRequest pending
     actionsChan  <- newChan
     initialModel <- mkInitialModel
+              `catchAny` \e -> do
+                 putStrLn (show e)
+                 die "Failed to make initial model"
+
     stateMVar    <- newMVar initialModel
     let respond = WS.sendTextData conn . J.encode
         ctx     = Ctx { respond = respond, trigger = writeChan actionsChan }
