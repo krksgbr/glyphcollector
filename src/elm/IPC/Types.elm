@@ -1,4 +1,4 @@
-module IPC.Types exposing (Avg, CreateProjectInput, GlyphCollection, ImPModel, Image, ImageStore, MatchedGlyph, Model, PendingImage, Project, ProjectId(..), ProjectModel, ProjectReq(..), ProjectView(..), RepoModel, RepoReq(..), Req(..), Res(..), TMInput, TMProcess, TMReq(..), TMStatus, unProjectId)
+module IPC.Types exposing (..)
 
 import Time exposing (Posix)
 
@@ -8,20 +8,17 @@ type alias Model =
     , repo : RepoModel
     }
 
-
 type Req
     = ProjectReq ProjectReq
     | RepoReq RepoReq
     | LoadProject Project
     | UnloadProject
 
-
 type Res
     = Error String
     | Ready Model
     | ModelUpdated Model
     | BadReq
-
 
 type alias ProjectModel =
     { templates : ImageStore
@@ -35,7 +32,6 @@ type alias ProjectModel =
     , view : ProjectView
     }
 
-
 type ProjectReq
     = ImPReq TMReq
     | ImportTemplates (List String)
@@ -48,7 +44,6 @@ type ProjectReq
     | OpenCollectionsDirectory String
     | OpenAvgsDirectory String
 
-
 type alias Image =
     { thumbnail : String
     , original : String
@@ -56,25 +51,21 @@ type alias Image =
     , id : String
     }
 
-
 type alias PendingImage =
     { filePath : String
     , fileName : String
     }
-
 
 type alias ImageStore =
     { pending : Maybe (List PendingImage)
     , imported : List Image
     }
 
-
 type alias GlyphCollection =
     { glyphName : String
     , matches : List MatchedGlyph
     , averages : List Avg
     }
-
 
 type alias MatchedGlyph =
     { image : Image
@@ -84,23 +75,19 @@ type alias MatchedGlyph =
     , glyphName : String
     }
 
-
 type alias Avg =
     { image : Image
     , glyphName : String
     }
 
-
 type ProjectView
     = Sources
     | Collections String
-
 
 type alias TMInput =
     { templates : List Image
     , sources : List Image
     }
-
 
 type alias TMStatus =
     { source : Image
@@ -108,19 +95,16 @@ type alias TMStatus =
     , pct : Float
     }
 
-
 type alias TMProcess =
     { threadId : String
     , status : Maybe TMStatus
     }
 
-
 type alias ImPModel =
     { collections : List GlyphCollection
     , process : Maybe TMProcess
-    , genAvgProcess : Maybe ( String, String )
+    , genAvgProcess : Maybe ((String, String))
     }
-
 
 type TMReq
     = RunTemplateMatching TMInput
@@ -130,33 +114,26 @@ type TMReq
     | DeleteAvg Avg
     | CancelGenAvg
 
-
 type alias RepoModel =
     { projectRepo : List Project
     , version : String
     }
-
 
 type RepoReq
     = CreateProject CreateProjectInput
     | RenameProject ProjectId String
     | DeleteProject ProjectId
 
-
 type ProjectId
     = ProjectId String
 
-
 unProjectId : ProjectId -> String
-unProjectId (ProjectId x) =
-    x
-
+unProjectId (ProjectId x) = x
 
 type alias CreateProjectInput =
     { directory : String
     , name : String
     }
-
 
 type alias Project =
     { templates : List Image

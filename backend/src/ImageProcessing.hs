@@ -9,6 +9,7 @@ import qualified Data.Massiv.Array.IO          as MassivIO
 import           Data.Function                  ( (&) )
 import qualified Graphics.ColorSpace           as ColorSpace
 import qualified Data.List                     as List
+import qualified Data.Text as T
 import qualified Debug
 import qualified Codec.Picture.Extra           as Juicy
 import qualified Codec.Picture                 as Juicy
@@ -37,8 +38,8 @@ mkAverage imgsWord8 =
     numImages = List.length (img : imgs)
     divPx pxValue = pxValue / fromIntegral numImages
 
-read :: FilePath -> IO Image
-read = MassivIO.readImageAuto
+read :: T.Text -> IO Image
+read = MassivIO.readImageAuto . T.unpack
 
 size :: Image -> (Int, Int)
 size = Massiv.fromIx2 . Massiv.unSz . Massiv.size
@@ -64,8 +65,8 @@ scaleToWidth targetWidth image
     targetWidth'      = fromIntegral targetWidth
 
 
-write :: FilePath -> Image -> IO ()
-write = MassivIO.writeImageAuto
+write :: T.Text -> Image -> IO ()
+write = MassivIO.writeImageAuto . T.unpack
 
 
 toDouble :: Image -> ImageD

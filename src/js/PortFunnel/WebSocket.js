@@ -118,7 +118,8 @@ function doOpen(args) {
   });
   socket.addEventListener("message", function(event) {
     var message = event.data;
-    //console.log("Received for '" + key + "': " + message);
+    // console.log("Received for '" + key + "': " + message);
+    console.log(JSON.parse(message));
     sub.send(objectReturn("messageReceived", { key: key, message: message }));
   });
   socket.addEventListener("close", function(event) {

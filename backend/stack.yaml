@@ -2,6 +2,11 @@ resolver: lts-14.23
 packages: 
 - .
 extra-deps:
+     # elm-street and its transitive dependencies
      - elm-street-0.1.0.2
      - warp-3.2.28
      - http2-1.6.5
+
+nix:
+  enable: true
+  packages: [zlib.dev, zlib.out]

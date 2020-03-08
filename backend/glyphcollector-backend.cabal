@@ -1,0 +1,130 @@
+cabal-version: 2.2
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: f3e1292193dba9e72e743237d581b56b2fd71d061db8f0f592568ec7df7d6b66
+
+name:           glyphcollector-backend
+version:        0.1.0.0
+category:       Graphics
+homepage:       www.glyphcollector.app
+author:         Gábor Kerekes
+maintainer:     krks.gbr@gmail.com
+license:        GPL-3.0-only
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    CHANGELOG.md
+
+library
+  exposed-modules:
+      App
+      AppData
+      Debug
+      Exception
+      ImageProcessing
+      ImageProcessing.TemplateMatching
+      Project
+      Project.GlyphCollection
+      Project.Image
+      Project.ImageProcessing
+      Repo
+      Utils
+  other-modules:
+      Paths_glyphcollector_backend
+  hs-source-dirs:
+      src
+  default-extensions: OverloadedStrings
+  extra-libraries:
+      z
+  build-depends:
+      JuicyPixels
+    , JuicyPixels-extra
+    , aeson
+    , base
+    , base64-bytestring
+    , bytestring
+    , containers
+    , directory
+    , elm-street
+    , filepath
+    , massiv
+    , massiv-io
+    , mtl
+    , network
+    , process
+    , scheduler
+    , text
+    , time
+    , uuid
+    , websockets
+  default-language: Haskell2010
+
+executable gc-core
+  main-is: Main.hs
+  other-modules:
+      Paths_glyphcollector_backend
+  hs-source-dirs:
+      app
+  default-extensions: OverloadedStrings
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  extra-libraries:
+      z
+  build-depends:
+      JuicyPixels
+    , JuicyPixels-extra
+    , aeson
+    , base
+    , base64-bytestring
+    , bytestring
+    , containers
+    , directory
+    , elm-street
+    , filepath
+    , glyphcollector-backend
+    , massiv
+    , massiv-io
+    , mtl
+    , network
+    , process
+    , scheduler
+    , text
+    , time
+    , uuid
+    , websockets
+  default-language: Haskell2010
+
+executable genElm
+  main-is: Main.hs
+  other-modules:
+      Paths_glyphcollector_backend
+  hs-source-dirs:
+      gen-elm
+  default-extensions: OverloadedStrings
+  extra-libraries:
+      z
+  build-depends:
+      JuicyPixels
+    , JuicyPixels-extra
+    , aeson
+    , base
+    , base64-bytestring
+    , bytestring
+    , containers
+    , directory
+    , elm-street
+    , filepath
+    , glyphcollector-backend
+    , massiv
+    , massiv-io
+    , mtl
+    , network
+    , process
+    , scheduler
+    , text
+    , time
+    , uuid
+    , websockets
+  default-language: Haskell2010

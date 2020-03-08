@@ -1,5 +1,6 @@
 import (fetchGit {
-  name = "nixpkgs-19.09";
+  name = "nixpkgs-20.03-beta";
   url = "git@github.com:nixos/nixpkgs.git";
-  ref = "refs/tags/19.09";
+  rev = "793fc88dbe9c8f53b144fd970a3685f7b1dec729";
+  ref = "refs/tags/20.03-beta";
 })

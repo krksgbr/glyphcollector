@@ -11,21 +11,22 @@ import qualified Control.Exception             as Exception
 import           Control.Exception              ( catch )
 import           Debug
 import           Exception
+import qualified Data.Text as T
 
 getTimestamp :: IO Int
 getTimestamp = (round . (* 1000)) <$> getPOSIXTime
 
 
-removeFile :: FilePath -> IO ()
-removeFile fileName = Directory.removeFile fileName `catch` handleExists
+removeFile :: T.Text -> IO ()
+removeFile fileName = Directory.removeFile (T.unpack fileName) `catch` handleExists
   where
     handleExists e | isDoesNotExistError e = return ()
                    | otherwise             = Exception.throwIO e
 
 
-mkdirp :: FilePath -> IO FilePath
+mkdirp :: T.Text -> IO T.Text
 mkdirp dirPath = do
-    Directory.createDirectoryIfMissing True dirPath
+    Directory.createDirectoryIfMissing True (T.unpack dirPath)
     return dirPath
 
 
@@ -44,9 +45,10 @@ indexed = zip [0 ..]
 
 
 
-openFile :: FilePath -> IO ()
-openFile dirpath =
-    let maybeCmd = case System.os of
+openFile :: T.Text -> IO ()
+openFile dirpath' =
+    let dirpath = T.unpack dirpath'
+        maybeCmd = case System.os of
             "mingw32" -> Just ("cmd", ["/c start " ++ dirpath])
             "darwin"  -> Just ("open", [dirpath])
             "linux"   -> Just ("xdg-open", [dirpath])

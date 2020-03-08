@@ -14266,14 +14266,14 @@ inherit (pkgs) libjpeg; inherit (pkgs) libpng; inherit (pkgs) zlib;};
            description = "Gloss picture data types and rendering functions";
            license = stdenv.lib.licenses.mit;
          }) {};
-      "glyphcollector" = callPackage
+      "glyphcollector-backend" = callPackage
         ({ mkDerivation, aeson, base, base64-bytestring, bytestring
          , containers, directory, elm-street, filepath, hpack, JuicyPixels
-         , JuicyPixels-extra, massiv, massiv-io, process, scheduler, stdenv
-         , text, time, uuid, websockets
+         , JuicyPixels-extra, massiv, massiv-io, mtl, network, process
+         , scheduler, stdenv, text, time, uuid, websockets, zlib
          }:
          mkDerivation {
-           pname = "glyphcollector";
+           pname = "glyphcollector-backend";
            version = "0.1.0.0";
            src = /home/gabor/projects/glyphcollector/backend/.;
            isLibrary = false;
@@ -14282,14 +14282,15 @@ inherit (pkgs) libjpeg; inherit (pkgs) libpng; inherit (pkgs) zlib;};
            executableHaskellDepends = [
              aeson base base64-bytestring bytestring containers directory
              elm-street filepath JuicyPixels JuicyPixels-extra massiv massiv-io
-             process scheduler text time uuid websockets
+             mtl network process scheduler text time uuid websockets
            ];
+           executableSystemDepends = [ zlib ];
            doHaddock = false;
            doCheck = false;
            preConfigure = "hpack";
            homepage = "www.glyphcollector.app";
            license = stdenv.lib.licenses.gpl3;
-         }) {};
+         }) {inherit (pkgs) zlib;};
       "gnuplot" = callPackage
         ({ mkDerivation, array, base, containers, data-accessor
          , data-accessor-transformers, deepseq, filepath, process

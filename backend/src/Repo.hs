@@ -30,19 +30,20 @@ import           Exception                      ( Failure(..) )
 import           Utils
 import qualified Data.UUID                     as UUID
 import qualified Data.UUID.V4                  as UUID
+import qualified Data.Text as T
 
 import Project.Image (Image)
 import           Project.GlyphCollection                  ( GlyphCollection
                                                 )
 
-newtype ProjectId = ProjectId String
+newtype ProjectId = ProjectId T.Text
   deriving (Generic, Show, Eq)
   deriving (Elm, ToJSON, FromJSON) via ElmStreet ProjectId
 
 data Project = Project { pTemplates ::  [Image]
                          , pSources :: [Image]
-                         , pName :: String
-                         , pDirectory :: FilePath
+                         , pName :: T.Text
+                         , pDirectory :: T.Text
                          , pCreatedAt :: Int
                          , pUpdatedAt :: Int
                          , pGlyphCollections :: [GlyphCollection]
@@ -52,8 +53,8 @@ data Project = Project { pTemplates ::  [Image]
   deriving (Elm, ToJSON, FromJSON) via ElmStreet Project
 
 
-data CreateProjectInput = CreateProjectInput { cpDirectory :: FilePath
-                                             , cpName :: String
+data CreateProjectInput = CreateProjectInput { cpDirectory :: T.Text
+                                             , cpName :: T.Text
                                              }
   deriving (Generic, Show)
   deriving (Elm, ToJSON, FromJSON) via ElmStreet CreateProjectInput
@@ -61,7 +62,7 @@ data CreateProjectInput = CreateProjectInput { cpDirectory :: FilePath
 
 
 data RepoModel = RepoModel { mProjectRepo :: [Project]
-                   , mVersion :: String
+                   , mVersion :: T.Text
                    }
     deriving (Generic, Show)
     deriving (Elm, ToJSON, FromJSON) via ElmStreet RepoModel
@@ -71,7 +72,7 @@ type Model = RepoModel
 
 data RepoReq =
   CreateProject CreateProjectInput
-  | RenameProject ProjectId String
+  | RenameProject ProjectId T.Text
   | DeleteProject ProjectId
   deriving (Generic, Show)
   deriving (Elm, ToJSON, FromJSON) via ElmStreet RepoReq
@@ -90,7 +91,7 @@ data Ctx = Ctx { onProjectCreated :: Project -> IO ()
 init :: IO Model
 init = do
     repoPath <- path
-    r <- tryJust (guard . isDoesNotExistError) (Aeson.decodeFileStrict repoPath)
+    r <- tryJust (guard . isDoesNotExistError) (Aeson.decodeFileStrict $ T.unpack repoPath)
     case r of
         Left  _           -> return initialModel
         Right Nothing     -> throwIO $ Failure "Could not decode repo."
@@ -104,7 +105,7 @@ mkNewProject :: CreateProjectInput -> IO Project
 mkNewProject input = do
     now  <- Utils.getTimestamp
     uuid <- UUID.nextRandom
-    pDirectory <- Utils.mkdirp $ (cpDirectory input) </> (cpName input)
+    pDirectory <- Utils.mkdirp $ T.pack $ (T.unpack $ cpDirectory input) </> (T.unpack $ cpName input)
     return $ Project { pTemplates    = []
                      , pSources      = []
                      , pGlyphCollections = []
@@ -112,7 +113,7 @@ mkNewProject input = do
                      , pDirectory    = pDirectory
                      , pCreatedAt    = now
                      , pUpdatedAt    = now
-                     , pId           = ProjectId $ UUID.toString uuid
+                     , pId           = ProjectId $ T.pack $ UUID.toString uuid
                      }
 
 
@@ -141,7 +142,7 @@ update Ctx {..} msg model = do
               Just project -> do
                   dataPath <- AppData.path [pName project] -- TODO this is defined in src/Project as well (getDataPath)
                                                            -- Also if people can rename their projects, this will break
-                  Directory.removeDirectoryRecursive dataPath
+                  Directory.removeDirectoryRecursive (T.unpack dataPath)
                   return $ model { mProjectRepo =
                                      List.filter (\p -> (pId p /= projectId))
                                        (mProjectRepo model)
@@ -164,11 +165,11 @@ update Ctx {..} msg model = do
 
 
 
-path :: IO FilePath
+path :: IO T.Text
 path = AppData.path ["repo.json"]
 
 
 save :: Model -> IO ()
 save repo = do
     repoPath <- path
-    Aeson.encodeFile repoPath repo
+    Aeson.encodeFile (T.unpack repoPath) repo

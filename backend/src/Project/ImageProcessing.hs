@@ -39,8 +39,8 @@ import           Data.Map                       ( Map
 import qualified Data.Maybe                    as Maybe
 
 import           Data.Function                  ( (&) )
-import qualified Data.Text                     as Text
-import qualified Text.Read                     as Text
+import qualified Data.Text                     as T
+import qualified Text.Read                     as T
 import           Text.Printf                    ( printf )
 import qualified Data.UUID                     as UUID
 import qualified Data.UUID.V4                  as UUID
@@ -78,7 +78,7 @@ instance Elm ThreadId where
     toElmDefinition _ = DefPrim ElmString
 
 instance ToJSON ThreadId where
-    toJSON tid = Aeson.String $ Text.pack $ show tid
+    toJSON tid = Aeson.String $ T.pack $ show tid
 
 data TMProcess = TMProcess { tmpThreadId :: ThreadId
                              , tmpStatus :: Maybe TMStatus
@@ -88,7 +88,7 @@ data TMProcess = TMProcess { tmpThreadId :: ThreadId
 
 data ImPModel = ImPModel { tmCollections :: [GlyphCollection]
                           , tmProcess ::  Maybe TMProcess
-                          , tmGenAvgProcess :: Maybe (ThreadId, String)
+                          , tmGenAvgProcess :: Maybe (ThreadId, T.Text)
                          }
   deriving (Generic, Show)
   deriving (Elm, ToJSON) via ElmStreet ImPModel
@@ -113,13 +113,13 @@ data Msg =
   | UpdateStatus TMStatus
   | StoreMatchedGlyphs [MatchedGlyph]
   | AvgDone Avg
-  | TMProcessFinished [String]
+  | TMProcessFinished [T.Text]
   deriving (Show)
 
 
 data Ctx = Ctx { trigger :: Msg -> IO ()
-               , projectDirectory :: String
-               , onMatchCompleted :: String -> IO ()
+               , projectDirectory :: T.Text
+               , onMatchCompleted :: T.Text -> IO ()
                }
 
 initModel :: [GlyphCollection] -> ImPModel
@@ -129,11 +129,11 @@ initModel glyphCollections = ImPModel { tmCollections   = glyphCollections
                                       }
 
 
-collectionsDirectory projectDirectory glyphName =
-    projectDirectory </> "results" </> "glyphs" </> glyphName
+collectionsDirectory projectDirectory glyphName = T.pack $
+    (T.unpack projectDirectory) </> "results" </> "glyphs" </> (T.unpack glyphName)
 
-avgsDirectory projectDirectory glyphName =
-    projectDirectory </> "results" </> "averages" </> glyphName
+avgsDirectory projectDirectory glyphName = T.pack $
+    (T.unpack projectDirectory) </> "results" </> "averages" </> (T.unpack glyphName)
 
 
 
@@ -225,14 +225,14 @@ genAvg Ctx {..} (mg : mgs) = do
     lastSeqNum <- inferLastSeqNum outDir
     imgId      <- UUID.nextRandom
     let avg         = Image.mkAverage imgs
-        outFileName = formatFileName glyphName (lastSeqNum + 1) <.> "jpg"
-        outFilePath = outDir </> outFileName
-    Image.write outFilePath avg
+        outFileName = formatFileName (T.unpack glyphName) (lastSeqNum + 1) <.> "jpg"
+        outFilePath = (T.unpack outDir) </> outFileName
+    Image.write (T.pack outFilePath) avg
     trigger $ AvgDone $ Avg
-        { avgImage     = Image { iThumbnail = outFilePath
+        { avgImage     = Image { iThumbnail = T.pack outFilePath
                                , iOriginal  = ""
-                               , iName      = outFileName
-                               , iId        = UUID.toString imgId
+                               , iName      = T.pack outFileName
+                               , iId        = T.pack $ UUID.toString imgId
                                }
         , avgGlyphName = glyphName
         }
@@ -261,12 +261,15 @@ runTemplateMatching Ctx {..} input prevCollections = do
             source
             template
             projectDirectory
-            (Path.takeBaseName $ iOriginal template)
+            (T.pack $ Path.takeBaseName $ T.unpack $ iOriginal template)
         trigger $ StoreMatchedGlyphs matchedGlyphs
         return matchedGlyphs
 
     let matchedGlyphNames =
-            List.map (Path.takeBaseName . iOriginal) (tmiTemplates input)
+            (tmiTemplates input)
+            & List.map (Path.takeBaseName . T.unpack . iOriginal)
+            & List.map T.pack
+
 
     trigger $ Debug.log "Finished" $ TMProcessFinished matchedGlyphNames
   where
@@ -279,7 +282,7 @@ runTemplateMatching Ctx {..} input prevCollections = do
 formatFileName :: String -> Int -> String
 formatFileName = printf "%s-%d"
 
-matchImages :: Image -> Image -> FilePath -> String -> IO [MatchedGlyph]
+matchImages :: Image -> Image -> T.Text -> T.Text -> IO [MatchedGlyph]
 matchImages source template projectDir glyphName = do
     sourceImage   <- Image.read (iOriginal source)
     templateImage <- Image.read (iOriginal template)
@@ -290,33 +293,33 @@ matchImages source template projectDir glyphName = do
         foldMatch :: [MatchedGlyph] -> (Int, IPT.Result) -> IO [MatchedGlyph]
         foldMatch acc (i, (score, image)) = do
             imgId <- UUID.nextRandom
-            let outName = formatFileName glyphName (i + lastSeqNum) <.> "jpg"
-                saveTo = outDir </> outName
+            let outName = formatFileName (T.unpack glyphName) (i + lastSeqNum) <.> "jpg"
+                saveTo = (T.unpack outDir) </> outName
                 matchedGlyph = MatchedGlyph
                     { mgGlyphName     = glyphName
                     , mgScore         = score
                     , mgSourceImage   = source
                     , mgTemplateImage = template
-                    , mgImage         = Image { iThumbnail = saveTo
+                    , mgImage         = Image { iThumbnail = T.pack saveTo
                                               , iOriginal  = "" -- TODO fix this
-                                              , iName      = outName
-                                              , iId        = UUID.toString imgId
+                                              , iName      = T.pack outName
+                                              , iId        = T.pack $ UUID.toString imgId
                                               }
                     }
-            Image.write saveTo image
+            Image.write (T.pack saveTo) image
             return $ acc ++ [matchedGlyph]
 
     foldM foldMatch [] $ Utils.indexed matches
 
 
-inferLastSeqNum :: FilePath -> IO Int
+inferLastSeqNum :: T.Text -> IO Int
 inferLastSeqNum dir =
     let digits = List.takeWhile Char.isDigit
             . List.dropWhile (not . Char.isDigit)
     in  do
-            files <- Directory.listDirectory dir
+            files <- Directory.listDirectory (T.unpack dir)
             let nums :: [Int] =
-                    Maybe.catMaybes $ Text.readMaybe . digits <$> files
+                    Maybe.catMaybes $ T.readMaybe . digits <$> files
             case nums of
                 (n : ns) -> return $ List.maximum (n : ns)
                 []       -> return 0

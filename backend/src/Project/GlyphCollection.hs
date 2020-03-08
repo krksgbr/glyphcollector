@@ -24,25 +24,26 @@ import           Data.Map                       ( Map
 
 import           Data.Function                  ( (&) )
 import qualified Data.List                     as List
+import qualified Data.Text as T
 
 
 data MatchedGlyph = MatchedGlyph { mgImage :: Image
                                   , mgScore :: Double
                                   , mgSourceImage :: Image
                                   , mgTemplateImage :: Image
-                                  , mgGlyphName :: String
+                                  , mgGlyphName :: T.Text
                                  }
   deriving (Generic, Show, Eq)
   deriving (Elm, ToJSON, FromJSON) via ElmStreet MatchedGlyph
 
 data Avg = Avg { avgImage :: Image
-               , avgGlyphName :: String
+               , avgGlyphName :: T.Text
                }
   deriving (Generic, Show, Eq)
   deriving (Elm, ToJSON, FromJSON) via ElmStreet Avg
 
 
-data GlyphCollection = GlyphCollection { gcGlyphName :: String
+data GlyphCollection = GlyphCollection { gcGlyphName :: T.Text
                                        , gcMatches :: [MatchedGlyph]
                                        , gcAverages :: [Avg]
                                        }
@@ -51,7 +52,7 @@ data GlyphCollection = GlyphCollection { gcGlyphName :: String
   deriving (Elm, ToJSON, FromJSON) via ElmStreet GlyphCollection
 
 
-ensureCollectionForKey :: String -> [GlyphCollection] -> [GlyphCollection]
+ensureCollectionForKey :: T.Text -> [GlyphCollection] -> [GlyphCollection]
 ensureCollectionForKey key gcs =
     gcs
         & collectionsToMap
@@ -99,7 +100,7 @@ appendAvgs (avg : avgs) gcs =
 
 adjustCollection
     :: (GlyphCollection -> GlyphCollection)
-    -> String
+    -> T.Text
     -> [GlyphCollection]
     -> [GlyphCollection]
 adjustCollection fn key gcs =
@@ -110,9 +111,9 @@ adjustCollection fn key gcs =
 
 -- Helpers
 
-collectionsToMap :: [GlyphCollection] -> Map String GlyphCollection
+collectionsToMap :: [GlyphCollection] -> Map T.Text GlyphCollection
 collectionsToMap collection =
     collection & List.map (\c -> (gcGlyphName c, c)) & Map.fromList
 
-collectionsFromMap :: Map String GlyphCollection -> [GlyphCollection]
+collectionsFromMap :: Map T.Text GlyphCollection -> [GlyphCollection]
 collectionsFromMap = Map.elems

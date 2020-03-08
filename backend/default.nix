@@ -1,6 +1,6 @@
 let
   stack2nix-output-path = ./stack2nix-output.nix;
-  cabalPackageName = "glyphcollector";
+  cabalPackageName = "glyphcollector-backend";
   compiler = "ghc865"; # matching stack.yaml
 
   # Pin static-haskell-nix version.
@@ -33,6 +33,7 @@ let
 in
   {
     package = static-stack2nix-builder.static_package;
+    inherit pkgs;
     inherit buildScript;
     inherit stack2nix-script;
   }

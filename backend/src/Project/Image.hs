@@ -12,11 +12,12 @@ import           Data.Aeson                     ( ToJSON
 import           GHC.Generics
 import           Elm
 import qualified Utils
+import qualified Data.Text as T
 
-data Image = Image { iThumbnail :: FilePath
-                   , iOriginal :: FilePath
-                   , iName :: String
-                   , iId :: String
+data Image = Image { iThumbnail :: T.Text
+                   , iOriginal :: T.Text
+                   , iName :: T.Text
+                   , iId :: T.Text
                    }
            deriving (Generic, Show, Eq, Ord)
            deriving (Elm, ToJSON, FromJSON) via ElmStreet Image
