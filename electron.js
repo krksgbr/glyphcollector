@@ -12,10 +12,9 @@ const dist = (file) => path.resolve(__dirname, "dist", file);
 const prodConfig = {
   url: `file://${dist("index.html")}`,
   startBackend: [
-	  dist("glyphcollector" + (process.platform === "win32" ? ".exe" : "")), 
+	  dist("gc-core" + (process.platform === "win32" ? ".exe" : "")),
 	  "+RTS", "-N"
   ]
-
 };
 
 const config = app.isPackaged ? prodConfig : devConfig;

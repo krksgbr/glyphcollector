@@ -1,7 +1,7 @@
 :set -XOverloadedStrings
---:set -Wall
+
 :set -Werror=missing-fields
 :set -Werror=incomplete-patterns
-:set -isrc
+:set -iapp
 :set -fdiagnostics-color=always
 :load Main

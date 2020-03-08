@@ -13,7 +13,7 @@ module App where
 
 import           Control.Concurrent
 import qualified Control.Exception
-import           Control.Exception              ( SomeException )
+import           Control.Exception              ( SomeException, throwIO )
 import           Control.Monad                  ( foldM
                                                 , forever
                                                 )
@@ -24,6 +24,7 @@ import           Debug
 import qualified Network.WebSockets            as WS
 import qualified Project
 import qualified Repo
+import qualified Data.Text as T
 import qualified Data.Aeson                    as Aeson
 import           Data.Aeson                     ( ToJSON
                                                 , FromJSON
@@ -32,6 +33,7 @@ import           GHC.Generics
 import           Elm
 import qualified Repo
 import Exception (catchAny)
+import System.Exit (die)
 
 data Model = Model { mProject :: Maybe Project.Model
                      , mRepo :: Repo.Model
@@ -61,7 +63,7 @@ instance Show Req where
 
 
 data Res =
-   Error String
+   Error T.Text
   | Ready Model
   | ModelUpdated Model
   | BadReq
@@ -75,6 +77,14 @@ data Msg
   | RepoMsg Repo.Msg
   | OpenProject Repo.Project
   | CloseProject
+
+instance Show Msg where
+  show (HandleReq _) = "HandleReq"
+  show HandleInvalidReq = "HandleInvalidReq"
+  show (ProjectMsg _) = "ProjectMsg"
+  show (RepoMsg _) = "RepoMsg"
+  show (OpenProject _) = "OpenProject"
+  show CloseProject = "CloseProject"
 
 data Ctx = Ctx
       { respond :: Res -> IO ()
@@ -91,7 +101,7 @@ reqToMsg req = case req of
 update :: Ctx -> Msg -> Model -> IO Model
 update ctx@Ctx {..} msg model = do
     newModel <- applyUpdate `catchAny` \e -> do
-        respond (Error $ Control.Exception.displayException e)
+        respond (Error $ T.pack $ Control.Exception.displayException e)
         return model
     -- Project.Repo.save (repo newModel)
     respond $ ModelUpdated newModel
@@ -99,9 +109,9 @@ update ctx@Ctx {..} msg model = do
   where
     projectCtx = Project.Ctx (trigger . ProjectMsg)
                              (trigger . RepoMsg . Repo.UpdateProject)
-    applyUpdate = case msg of
+    applyUpdate = case Debug.log "msg" msg of
         HandleReq req ->
-            update ctx (reqToMsg req) model
+            update ctx (reqToMsg $ Debug.log "req: " req) model
 
         ProjectMsg subMsg -> case mProject model of
             Just subModel -> do
@@ -145,16 +155,24 @@ app pending = do
     conn         <- WS.acceptRequest pending
     actionsChan  <- newChan
     initialModel <- mkInitialModel
+              `catchAny` \e -> do
+                 putStrLn (show e)
+                 die "Failed to make initial model"
+
     stateMVar    <- newMVar initialModel
     let respond = WS.sendTextData conn . J.encode
         ctx     = Ctx { respond = respond, trigger = writeChan actionsChan }
     _ <- forkIO $ loop ctx stateMVar (readChan actionsChan)
     respond $ Ready initialModel
+    putStrLn "Ready."
     loop ctx stateMVar $ do
         msg <- WS.receiveData conn
-        return $ case J.decode msg of
-            Just req -> HandleReq req
-            Nothing  -> HandleInvalidReq
+        return $ case J.eitherDecode $ Debug.log "msg" msg of
+          Left err -> Debug.log ("err: " ++ err) HandleInvalidReq
+          Right req -> HandleReq req
+        -- return $ case J.decode msg of
+        --     Just req -> HandleReq req
+        --     Nothing  -> HandleInvalidReq
 
 main :: IO ()
 main = do

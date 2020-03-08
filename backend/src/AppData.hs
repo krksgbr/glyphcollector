@@ -6,6 +6,7 @@ where
 
 import           System.Directory              as Directory
 import           System.FilePath.Posix         as Path
+import qualified Data.Text as T
 
 directory :: IO FilePath
 directory = do
@@ -13,7 +14,7 @@ directory = do
     Directory.createDirectoryIfMissing True dir
     return dir
 
-path :: [FilePath] -> IO FilePath
+path :: [T.Text] -> IO T.Text
 path paths = do
     root <- directory
-    return $ Path.joinPath (root : paths)
+    return $ T.pack $ Path.joinPath (root : (T.unpack <$> paths))

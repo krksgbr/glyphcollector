@@ -1,0 +1,57 @@
+name:                glyphcollector-backend
+version:             0.1.0.0
+homepage:            www.glyphcollector.app
+license:             GPL-3.0-only
+license-file:        LICENSE
+author:              Gábor Kerekes
+maintainer:          krks.gbr@gmail.com
+category:            Graphics
+extra-source-files:  CHANGELOG.md
+
+library:
+  source-dirs: src
+
+dependencies:
+  - aeson
+  - base
+  - base64-bytestring
+  - bytestring
+  - containers
+  - directory
+  - elm-street
+  - JuicyPixels
+  - JuicyPixels-extra
+  - massiv
+  - massiv-io
+  - text
+  - websockets
+  - filepath
+  - time
+  - uuid
+  - scheduler
+  - process
+  - network
+  - mtl
+
+extra-libraries:
+  - z
+
+default-extensions:
+  - OverloadedStrings
+
+executables:
+  gc-core:
+    source-dirs: app
+    main: Main.hs
+    dependencies:
+      - glyphcollector-backend
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+
+  genElm:
+    source-dirs: gen-elm
+    main: Main.hs
+    dependencies:
+      - glyphcollector-backend

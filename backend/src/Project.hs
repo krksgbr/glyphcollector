@@ -44,12 +44,12 @@ import qualified Data.UUID.V4                  as UUID
 import qualified Data.UUID                     as UUID
 import           Data.Proxy                     ( Proxy(..) )
 import qualified Data.List                     as List
+import qualified Data.Text as T
 
 import qualified Utils
 import           System.IO.Error                ( isDoesNotExistError )
 
 import           Elm
-import qualified ElmGenSettings
 
 import qualified System.FilePath               as Path
 import           System.FilePath                ( (</>)
@@ -75,7 +75,7 @@ import           Exception                      ( catchAny )
 
 data ProjectView =
   Sources
-  | Collections String
+  | Collections T.Text
  deriving (Eq, Ord, Generic, Show)
  deriving (Elm, ToJSON, FromJSON) via ElmStreet ProjectView
 
@@ -83,15 +83,15 @@ type View = ProjectView
 
 data ProjectReq =
   ImPReq ImP.Req
-  | ImportTemplates [FilePath]
+  | ImportTemplates [T.Text]
   | CancelImportTemplates [PendingImage]
-  | ImportSources [FilePath]
+  | ImportSources [T.Text]
   | CancelImportSources [PendingImage]
   | DeleteTemplates [Image]
   | DeleteSources [Image]
   | ViewReq View
-  | OpenCollectionsDirectory String
-  | OpenAvgsDirectory String
+  | OpenCollectionsDirectory T.Text
+  | OpenAvgsDirectory T.Text
   deriving (Generic)
   deriving (Elm, ToJSON, FromJSON) via ElmStreet ProjectReq
 
@@ -107,8 +107,8 @@ instance Show ProjectReq where
         CancelImportTemplates _      -> "CancelImportTemplates"
         CancelImportSources   _      -> "CancelImportSources"
         ViewReq               v      -> "ViewReq " ++ show v
-        OpenCollectionsDirectory g                   -> "OpenCollectionsDirectory " ++ g
-        OpenAvgsDirectory g -> "OpenAvgsDirectory " ++ g
+        OpenCollectionsDirectory g                   -> "OpenCollectionsDirectory " ++ (T.unpack g)
+        OpenAvgsDirectory g -> "OpenAvgsDirectory " ++ (T.unpack g)
 
 
 data Msg =
@@ -121,8 +121,8 @@ data Msg =
   deriving (Show)
 
 
-data PendingImage = PendingImage { piFilePath :: FilePath
-                                 , piFileName :: String
+data PendingImage = PendingImage { piFilePath :: T.Text
+                                 , piFileName :: T.Text
                                  }
                   deriving (Eq, Ord, Generic, Show)
                   deriving (Elm, ToJSON, FromJSON) via ElmStreet PendingImage
@@ -155,11 +155,11 @@ data ImageStore = ImageStore { pending :: Maybe ImageImports
 data ProjectModel = ProjectModel
   { mTemplates ::  ImageStore
   , mSources :: ImageStore
-  , mName :: String
+  , mName :: T.Text
   , mCreatedAt :: Int
   , mUpdatedAt :: Int
   , mImP :: ImP.Model
-  , mDirectory :: FilePath
+  , mDirectory :: T.Text
   , mId :: Repo.ProjectId
   , mView :: View
   }
@@ -173,9 +173,9 @@ data Ctx = Ctx { trigger :: Msg -> IO ()
                }
 
 
-newtype DataPath = DataPath FilePath
+newtype DataPath = DataPath T.Text
 
-data ImageImportConfig = ImageImportConfig { projectName :: String
+data ImageImportConfig = ImageImportConfig { projectName :: T.Text
                                             , ctx :: Ctx
                                             , onImported :: Image -> Msg
                                            }
@@ -198,9 +198,9 @@ initModel rp = ProjectModel
     }
 
 
-mkPendingImage :: FilePath -> PendingImage
+mkPendingImage :: T.Text -> PendingImage
 mkPendingImage filePath = PendingImage
-    { piFileName = Path.takeFileName filePath
+    { piFileName = T.pack $ Path.takeFileName $ T.unpack filePath
     , piFilePath = filePath
     }
 
@@ -288,7 +288,7 @@ modelToRepoProject model = Repo.Project
 
 
 queueImageImports
-    :: [FilePath] -> ImageImportConfig -> ImageStore -> IO ImageStore
+    :: [T.Text] -> ImageImportConfig -> ImageStore -> IO ImageStore
 
 queueImageImports [] _ imageStore = return imageStore
 queueImageImports (filePath : filePaths) importConfig imageStore =
@@ -442,28 +442,28 @@ cancelPendingImports model = do
     newSources   <- cancelPendingImport (mSources model)
     return $ model { mTemplates = newTemplates, mSources = newSources }
 
-getDataPath :: String -> IO DataPath
+getDataPath :: T.Text -> IO DataPath
 getDataPath projectName = do
     p <- AppData.path [projectName]
-    Directory.createDirectoryIfMissing True p
+    Directory.createDirectoryIfMissing True (T.unpack p)
     return (DataPath p)
 
 
-createImage :: DataPath -> FilePath -> IO Image
+createImage :: DataPath -> T.Text -> IO Image
 createImage (DataPath projectDataPath) filePath = do
     imageId <- UUID.toString <$> UUID.nextRandom
-    let extension = Path.takeExtension filePath
+    let extension = Path.takeExtension $ T.unpack filePath
         thumbnailPath =
-            projectDataPath </> imageId <.> extension
+            (T.unpack projectDataPath) </> imageId <.> extension
 
     _       <-
         Image.read
         >=> (pure . Image.scaleToWidth 500)
-        >=> (Image.write thumbnailPath)
+        >=> (Image.write $ T.pack thumbnailPath)
         $   filePath
 
-    return $ Image { iThumbnail = thumbnailPath
+    return $ Image { iThumbnail = T.pack thumbnailPath
                    , iOriginal  = filePath
-                   , iName      = Path.takeFileName filePath
-                   , iId        =  imageId
+                   , iName      = T.pack $ Path.takeFileName $ T.unpack filePath
+                   , iId        =  T.pack imageId
                    }

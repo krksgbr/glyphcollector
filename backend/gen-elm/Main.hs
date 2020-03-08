@@ -11,7 +11,7 @@ import qualified App
 import qualified Repo
 
 settings m =
-  Elm.defaultSettings "../frontend/src/elm" (["IPC"] ++ m)
+  Elm.defaultSettings "../src/elm" (["IPC"] ++ m)
 
 
 type Types  =
@@ -41,4 +41,6 @@ type Types  =
 
 
 main :: IO ()
-main = Elm.generateElm @Types $ settings []
+main = do
+  Elm.generateElm @Types $ settings []
+  putStrLn "done."
