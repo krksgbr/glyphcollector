@@ -34,7 +34,8 @@ function getLinks(lib) {
     .filter(it => !it.endsWith(":"))
     .map(it => it.trim())
     .map(it => it.split(" ")[0])
-    .filter(it => it.includes("/nix/store"));
+    .filter(it => it !== "")
+  // .filter(it => it.includes("/nix/store"));
   return links;
 }
 
@@ -44,12 +45,14 @@ function mkInstallNameCmd(link, file) {
   )} ${file}`;
 }
 
+const done = [];
 function gatherLibs(lib, acc = {}) {
   if (acc[lib]) {
     return acc;
   }
 
   const links = getLinks(lib);
+  done.push(lib);
 
   const basename = path.basename(lib);
   const newPath = `${outdir}/${basename}`;
@@ -63,7 +66,7 @@ function gatherLibs(lib, acc = {}) {
   };
 
   return links.reduce((acc, link) => {
-    const more = gatherLibs(link, acc);
+    const more = done.includes(link) ? [] : gatherLibs(link, acc);
     return {
       ...acc,
       ...more
@@ -72,7 +75,7 @@ function gatherLibs(lib, acc = {}) {
 }
 
 const todo = Object.values(gatherLibs(exe));
-
+ 
 function rename(link, file) {
   const newLink = `@executable_path/${path.basename(link)}`;
   const cmd = `install_name_tool -change ${link} ${newLink} ${file}`;
