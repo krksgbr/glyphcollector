@@ -1,4 +1,4 @@
-NODE_BIN = node_modules/.bin
+NODE_BIN = $(PWD)/node_modules/.bin
 OS=$(shell uname -s)
 
 all:
@@ -8,6 +8,11 @@ all: macos
 else
 all: linux
 endif
+
+ifeq (, $(findstring $(OS), MINGW))
+all: windows
+endif
+
 
 linux: \
 	clean \
@@ -28,10 +33,24 @@ macos: \
 	@$(NODE_BIN)/electron-forge make
 	node ./macos/collect-backend-deps.js --exe=$(PWD)/dist/gc-core --outdir=$(PWD)/dist
 
+windows: \
+	clean \
+	windows-backend \
+	node_modules
+	@mkdir -p dist
+	@$(NODE_BIN)/parcel build --public-url . src/index.html
+	@cd backend && cp `stack path --local-install-root`/bin/gc-core.exe ../dist
+	@$(NODE_BIN)/electron-forge make
+
+e:
+	@echo $(NODE_BIN)
 
 macos-backend:    
 	@cd backend && $(MAKE) macos
 
+windows-backend:
+	@cd backend && make windows
+	
 node_modules:
 	@yarn
 

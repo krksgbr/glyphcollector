@@ -13,6 +13,14 @@ result: \
 	src
 	@$$(nix-build --no-link -A buildScript --out-link $@)
 
+
+macos: 
+	@stack build
+
+windows:
+	@stack build
+
+
 dev: 
 	@ghcid --test ":main"
 
@@ -21,6 +29,3 @@ genElm:
 	@sed -i 's/D\.map T\.ProjectId D\.string/D.field "contents" <| D.map T.ProjectId D.string/' ../src/elm/IPC/Decoder.elm
 	@sed -i 's/encodeProjectId = E\.string << T\.unProjectId/encodeProjectId pId = E.object [ ( "tag", E.string "ProjectId" ), ( "contents", E.string <| T.unProjectId pId ) ]/' ../src/elm/IPC/Encoder.elm
 
-macos: \
-	clean
-	@stack build
