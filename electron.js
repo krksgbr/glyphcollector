@@ -17,7 +17,7 @@ const prodConfig = {
   ]
 };
 
-const config = app.isPackaged ? prodConfig : devConfig;
+const config = app.isPackaged && typeof process.env.DEVELOPMENT === "undefined" ? prodConfig : devConfig;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (windowsInstalling) {
