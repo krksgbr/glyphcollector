@@ -2,6 +2,7 @@
 {-# LANGUAGE DerivingVia  #-}
 {-# LANGUAGE DeriveGeneric  #-}
 {-# LANGUAGE RecordWildCards  #-}
+{-# LANGUAGE BangPatterns  #-}
 
 module Repo where
 
@@ -35,6 +36,7 @@ import qualified Data.Text as T
 import Project.Image (Image)
 import           Project.GlyphCollection                  ( GlyphCollection
                                                 )
+import Debug
 
 newtype ProjectId = ProjectId T.Text
   deriving (Generic, Show, Eq)
@@ -87,11 +89,23 @@ data Msg =
 data Ctx = Ctx { onProjectCreated :: Project -> IO ()
                }
 
+loadRepo = do
+  repoPath <- path
+  result <-  Aeson.eitherDecodeFileStrict $ T.unpack repoPath
+  return $ case result of
+    Left err ->
+      let
+        !x = Debug.log "err" err
+      in
+        Nothing
+    Right r ->
+        Just r
+
 
 init :: IO Model
 init = do
     repoPath <- path
-    r <- tryJust (guard . isDoesNotExistError) (Aeson.decodeFileStrict $ T.unpack repoPath)
+    r <- tryJust (guard . isDoesNotExistError) loadRepo
     case r of
         Left  _           -> return initialModel
         Right Nothing     -> throwIO $ Failure "Could not decode repo."
