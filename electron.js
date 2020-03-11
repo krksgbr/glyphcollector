@@ -2,6 +2,9 @@ const { app, BrowserWindow } = require("electron");
 const path = require("path");
 const { spawn } = require("child_process");
 const windowsInstalling = require("electron-squirrel-startup");
+const patchRepo = require("./patch-repo");
+
+patchRepo();
 
 const devConfig = {
   url: "http://localhost:3000"
