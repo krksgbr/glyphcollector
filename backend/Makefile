@@ -22,7 +22,7 @@ windows:
 
 
 dev: 
-	@ghcid --test ":main"
+	@ghcid --test ":main" --command=stack ghci
 
 genElm:
 	@stack run genElm
