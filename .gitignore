@@ -7,3 +7,4 @@ elm-stuff/
 backend/.stack-work
 backend/dist*
 .elm
+backend/stack2nix-output.nix
