@@ -150,31 +150,35 @@ loop ctx stateMVar getMsg = do
     loop ctx stateMVar getMsg
     return ()
 
-app :: WS.ServerApp
-app pending = do
+
+
+app :: Model -> WS.ServerApp
+app model pending = do
     conn         <- WS.acceptRequest pending
     actionsChan  <- newChan
-    initialModel <- mkInitialModel
-              `catchAny` \e -> do
-                 putStrLn (show e)
-                 die "Failed to make initial model"
-
-    stateMVar    <- newMVar initialModel
+    stateMVar    <- newMVar model
     let respond = WS.sendTextData conn . J.encode
         ctx     = Ctx { respond = respond, trigger = writeChan actionsChan }
     _ <- forkIO $ loop ctx stateMVar (readChan actionsChan)
-    respond $ Ready initialModel
+    respond $ Ready model
     putStrLn "Ready."
     loop ctx stateMVar $ do
         msg <- WS.receiveData conn
-        return $ case J.eitherDecode $ Debug.log "msg" msg of
-          Left err -> Debug.log ("err: " ++ err) HandleInvalidReq
+        return $ case J.eitherDecode msg of
+          Left err ->  HandleInvalidReq
           Right req -> HandleReq req
-        -- return $ case J.decode msg of
-        --     Just req -> HandleReq req
-        --     Nothing  -> HandleInvalidReq
 
 main :: IO ()
 main = do
-    putStrLn "WS server running on 9160"
-    WS.runServer "127.0.0.1" 9160 app
+    maybeInitialModel <- (Just <$> mkInitialModel)
+              `catchAny` \e -> do
+                 putStrLn (show e)
+                 return Nothing
+
+    case maybeInitialModel of
+      Just model -> do
+        putStrLn "WS server running on 9160"
+        WS.runServer "127.0.0.1" 9160 (app model)
+
+      Nothing ->
+        die "Failed to load project repo"
