@@ -156,7 +156,12 @@ update Ctx {..} msg model = do
               Just project -> do
                   dataPath <- AppData.path [pName project] -- TODO this is defined in src/Project as well (getDataPath)
                                                            -- Also if people can rename their projects, this will break
-                  Directory.removeDirectoryRecursive (T.unpack dataPath)
+
+                  _ <- Directory.removeDirectoryRecursive (T.unpack dataPath)
+                       -- the project directory might not yet exist
+                       -- it is only created when the first asset is added
+                       & tryJust (guard . isDoesNotExistError)
+
                   return $ model { mProjectRepo =
                                      List.filter (\p -> (pId p /= projectId))
                                        (mProjectRepo model)
