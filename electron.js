@@ -4,6 +4,13 @@ const { spawn } = require("child_process");
 const windowsInstalling = require("electron-squirrel-startup");
 const patchRepo = require("./patch-repo");
 
+
+// Handle creating/removing shortcuts on Windows when installing/uninstalling.
+if (windowsInstalling) {
+  // eslint-disable-line global-require
+  return app.quit();
+}
+
 patchRepo();
 
 const devConfig = {
@@ -22,11 +29,6 @@ const prodConfig = {
 
 const config = app.isPackaged && typeof process.env.DEVELOPMENT === "undefined" ? prodConfig : devConfig;
 
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (windowsInstalling) {
-  // eslint-disable-line global-require
-  return app.quit();
-}
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
