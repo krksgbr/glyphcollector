@@ -10,9 +10,11 @@ module.exports = function() {
   const repoPath = utils.repoPath();
   if (fs.existsSync(repoPath)) {
     const repo = require(repoPath);
-    const newRepo = require("./v1-v2").run(repo);
-    fs.copyFileSync(repoPath, `${repoPath}.${repo.version}.backup`);
-    fs.writeFileSync(repoPath, JSON.stringify(newRepo));
-    console.log("patched repo");
+    if(repo.version === "1.0"){
+      const newRepo = require("./v1-v2").run(repo);
+      fs.copyFileSync(repoPath, `${repoPath}.${repo.version}.backup`);
+      fs.writeFileSync(repoPath, JSON.stringify(newRepo));
+      console.log("patched repo");
+    }
   }
 };
