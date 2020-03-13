@@ -103,15 +103,14 @@ update ctx@Ctx {..} msg model = do
     newModel <- applyUpdate `catchAny` \e -> do
         respond (Error $ T.pack $ Control.Exception.displayException e)
         return model
-    -- Project.Repo.save (repo newModel)
     respond $ ModelUpdated newModel
     return newModel
   where
     projectCtx = Project.Ctx (trigger . ProjectMsg)
                              (trigger . RepoMsg . Repo.UpdateProject)
-    applyUpdate = case Debug.log "msg" msg of
+    applyUpdate = case msg of
         HandleReq req ->
-            update ctx (reqToMsg $ Debug.log "req: " req) model
+            update ctx (reqToMsg req) model
 
         ProjectMsg subMsg -> case mProject model of
             Just subModel -> do
@@ -126,10 +125,12 @@ update ctx@Ctx {..} msg model = do
             newRepo <- Repo.update repoCtx subMsg (mRepo model)
             return $ model { mRepo = newRepo }
 
+        -- TODO this should be a ProjectMsg
         OpenProject project -> do
             let projectState = Just $ Project.initModel project
             return $ model { mProject = projectState }
 
+        -- TODO this should be a ProjectMsg
         CloseProject -> case mProject model of
             Just subModel -> do
                 _ <- Project.update projectCtx Project.ShutDown subModel
