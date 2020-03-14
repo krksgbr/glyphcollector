@@ -99,10 +99,15 @@ viewThumbnail :
     }
     -> Element msg
 viewThumbnail args =
+    let
+        labelHeight =
+            30
+    in
     column
         [ Background.color Color.white
         , Border.width 2
         , Border.rounded 10
+        , width <| px (args.size + labelHeight)
         , onClick args.onClick
         , Font.color <|
             if args.isSelected then
@@ -113,17 +118,15 @@ viewThumbnail args =
         ]
         [ el
             [ args.backgroundAttr
-            , width <| px (args.size + 30)
             , height <| px args.size
+            , width fill
             , Border.bottom 2
             , inFront <|
                 if args.isSelected then
                     el
                         [ Background.color <| Color.opacify 0.1 Color.accent
-                        , width <| px (args.size + 30)
+                        , width <| px (args.size + labelHeight)
                         , height <| px args.size
-
-                        --                        , Border.rounded 10
                         ]
                     <|
                         none
@@ -135,7 +138,7 @@ viewThumbnail args =
             none
         , row
             [ paddingXY 10 0
-            , height <| px 30
+            , height <| px labelHeight
             , spaceEvenly
             , width fill
             ]
