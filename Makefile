@@ -1,5 +1,6 @@
 NODE_BIN = $(PWD)/node_modules/.bin
 OS=$(shell uname -s)
+VERSION=0.2.0
 
 all:
 
@@ -9,60 +10,69 @@ else
 all: linux
 endif
 
-ifeq (, $(findstring $(OS), MINGW))
-all: windows
-endif
-
-
-linux: \
+COMMON_DEPS = \
 	clean \
-	backend \
-	node_modules
-	@mkdir -p dist
-	@$(NODE_BIN)/parcel build --public-url . src/index.html
+	node_modules \
+	dist \
+	frontend \
+	version
+
+.PHONY: version
+version:
+	@jq '.version = "$(VERSION)"' package.json > package.json.tmp
+	@mv package.json.tmp package.json
+
+.PHONY: linux
+linux: $(COMMON_DEPS)
 	@cp backend/result/bin/gc-core dist
 	@$(NODE_BIN)/electron-forge make
 
-macos: \
-	clean \
-	macos-backend \
-	node_modules
-	@mkdir -p dist
-	@$(NODE_BIN)/parcel build --public-url . src/index.html
+.PHONY: macos
+macos: $(COMMON_DEPS)
 	@cd backend && cp `stack path --local-install-root`/bin/gc-core ../dist
 	@$(NODE_BIN)/electron-forge make
 	node ./macos/collect-backend-deps.js --exe=$(PWD)/dist/gc-core --outdir=$(PWD)/dist
 
-windows: \
-	clean \
-	windows-backend \
-	node_modules
-	@mkdir -p dist
-	@$(NODE_BIN)/parcel build --public-url . src/index.html
+.PHONY: windows
+windows: $(COMMON_DEPS)
 	@cd backend && cp `stack path --local-install-root`/bin/gc-core.exe ../dist
 	@$(NODE_BIN)/electron-forge make
 
-e:
-	@echo $(NODE_BIN)
+dist:
+	@mkdir -p $@
 
-macos-backend:    
+src/manifest.json:
+	@echo '{"version": "$(VERSION)", "os": "$(OS)"}' > $@
+
+.PHONY: frontend
+frontend: \
+	src/manifest.json
+	@$(NODE_BIN)/parcel build --target electron --public-url . src/index.html
+
+.PHONY: backend
+backend:
+	@cd backend && $(MAKE) result
+
+.PHONY: macos-backend
+macos-backend:
 	@cd backend && $(MAKE) macos
 
+.PHONY: windows-backend
 windows-backend:
 	@cd backend && make windows
-	
-node_modules:
+
+node_modules: package.json
 	@yarn
 
+.PHONY: clean
 clean:
 	@echo "Cleaning"
 	@rm -rf elm-stuff
 	@rm -rf dist
 	@rm -rf out
 
-backend:
-	@cd backend && $(MAKE) result
-
+.PHONY: dev
 dev: \
-	node_modules
-	@yarn startParcel
+	node_modules \
+	src/manifest.json
+	@$(NODE_BIN)/parcel watch --target electron --public-url . src/index.html
