@@ -81,7 +81,7 @@ function rename(link, file) {
   const cmd = `install_name_tool -change ${link} ${newLink} ${file}`;
   try {
     execSync(cmd);
-    console.log(`renamed ${link} to ${newLink} in ${file}`);
+    // console.log(`renamed ${link} to ${newLink} in ${file}`);
   } catch (e) {
     console.log("");
     console.log(`failed to rename ${link} in ${file}`);
@@ -123,7 +123,7 @@ const renamed = todo.reduce((acc, it) => {
   return acc.concat(it.newPath);
 }, []);
 
-console.log({
-  copied,
-  renamed
-});
+// console.log({
+//   copied,
+//   renamed
+// });
