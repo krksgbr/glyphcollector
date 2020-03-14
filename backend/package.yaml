@@ -49,6 +49,10 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    # Fixes performance regression of Massiv
+    # from https://github.com/lehins/massiv/issues/70
+    # might also be relevant: https://github.com/lehins/massiv/issues/91 
+    - -fno-full-laziness 
 
   genElm:
     source-dirs: gen-elm
