@@ -5,8 +5,6 @@
   "description": "A tool for type research and revival",
   "main": "electron.js",
   "scripts": {
-    "start": "electron-forge start",
-    "startParcel": "parcel -p 3000 src/index.html",
     "lint": "echo \"No linting configured\""
   },
   "keywords": [],

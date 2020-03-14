@@ -1,4 +1,6 @@
+const { shell } = require('electron')
 const Elm = require("./elm/Main.elm").Elm;
+const manifest = require("./manifest.json");
 
 require("./resources/whois-mono/stylesheet.css");
 require("./css/spinner.css");
@@ -6,10 +8,17 @@ require("./css/spinner.css");
 const { PortFunnel } = require("./js/PortFunnel");
 const mkWebSocketFunnel = require("./js/PortFunnel/WebSocket");
 
+const appSettings = localStorage.getItem("appSettings");
 
 const app = Elm.Main.init({
   node: document.getElementById('main'),
+  flags: {
+    manifest,
+    appSettings: appSettings && JSON.parse(appSettings)
+  }
 });
+
+console.log(app);
 
 PortFunnel.subscribe(app);
 mkWebSocketFunnel(PortFunnel);
@@ -34,6 +43,15 @@ window.addEventListener("dragenter", sendWindowDragStart);
 window.addEventListener("dragover", sendWindowDragStart);
 window.addEventListener("dragleave", sendWindowDragEnd);
 window.addEventListener("drop", sendWindowDragEnd);
+
+app.ports.openExternalUrl.subscribe(url => {
+  shell.openExternalSync(url);
+});
+
+app.ports.updateAppSettings.subscribe(newAppSettings => {
+  localStorage.setItem("appSettings", JSON.stringify(newAppSettings));
+  app.ports.appSettingsUpdated.send(newAppSettings);
+});
 
 if(process.env.NODE_ENV === "development"){
   // Remove elm debugger this hacky way, because parcel doesn't allow for configuring this

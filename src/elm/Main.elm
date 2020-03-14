@@ -2,6 +2,7 @@ module Main exposing (Model, main)
 
 --import TemplateMatching
 
+import AppSettings
 import Browser
 import Element exposing (..)
 import Element.Background as Background
@@ -11,6 +12,7 @@ import Home
 import Html exposing (Html)
 import IPC
 import IPC.Types exposing (Project, Res(..))
+import Release
 import Return exposing (Return)
 import UI.Button as Button
 import UI.Color as Color
@@ -35,39 +37,42 @@ type alias Model =
     { ipc : IPC.Model
     , state : State
     , error : Maybe String
+    , release : Release.Model
+    , appSettings : AppSettings.Settings
     }
 
 
 type Msg
     = IPCMsg IPC.Msg
+    | ReleaseMsg Release.Msg
     | HomeMsg Home.Msg
     | GoHome
     | WorkspaceMsg Workspace.Msg
     | DismissError
-
-
-
---    | TemplateMatchingMsg TemplateMatching.Msg
+    | AppSettingsUpdated AppSettings.Settings
 
 
 type alias Flags =
-    ()
+    { manifest : Release.Manifest
+    , appSettings : Maybe AppSettings.Settings
+    }
 
 
 init : Flags -> Return Msg Model
-init _ =
-    IPC.init
-        |> Return.mapBoth IPCMsg
-            (\ipc ->
-                { ipc = ipc
-                , state = WaitingForConnect
-                , error = Nothing
-                }
-            )
-
-
-
--- |> Debug.log "initialzied "
+init flags =
+    Return.map2
+        (\ipc release ->
+            { ipc = ipc
+            , state = WaitingForConnect
+            , error = Nothing
+            , release = release
+            , appSettings =
+                flags.appSettings
+                    |> Maybe.withDefault AppSettings.init
+            }
+        )
+        (IPC.init |> Return.mapCmd IPCMsg)
+        (Release.init flags.manifest |> Return.mapCmd ReleaseMsg)
 
 
 updateState : Model -> State -> Model
@@ -133,6 +138,16 @@ update msg model =
             { model | error = Nothing }
                 |> Return.singleton
 
+        ( ReleaseMsg subMsg, _ ) ->
+            Release.update subMsg model.release model.appSettings
+                |> Return.map
+                    (\newModel ->
+                        { model
+                            | release = newModel
+                        }
+                    )
+                |> Return.mapCmd ReleaseMsg
+
         ( _, _ ) ->
             model
                 |> Return.singleton
@@ -173,30 +188,37 @@ viewError err =
 
 
 viewLoading =
-    column [ Font.size 50, centerY, centerX ]
-        [ text "one sec..."
-        ]
+    el [ Font.size 50, centerY, centerX ] <| text "one sec..."
 
 
-frame maybeError =
+frame : Model -> Element Msg -> Html Msg
+frame model content =
     layoutWith
         { options =
             Layout.options
         }
         (Layout.attrs
             ++ [ inFront <|
-                    (maybeError
+                    (model.error
                         |> Maybe.map viewError
                         |> Maybe.withDefault none
                     )
                , Background.color Color.background
                ]
         )
+    <|
+        column
+            [ width fill, height fill ]
+            [ Release.view model.release
+                |> Maybe.map (map ReleaseMsg)
+                |> Maybe.withDefault none
+            , content
+            ]
 
 
 view : Model -> Html Msg
 view model =
-    frame model.error <|
+    frame model <|
         case model.state of
             WaitingForConnect ->
                 viewLoading
@@ -220,6 +242,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     [ IPC.subscriptions model.ipc |> Sub.map IPCMsg
     , Workspace.subscriptions |> Sub.map WorkspaceMsg
+    , AppSettings.appSettingsUpdated AppSettingsUpdated
     ]
         |> Sub.batch
 

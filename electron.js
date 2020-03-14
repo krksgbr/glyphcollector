@@ -13,11 +13,12 @@ if (windowsInstalling) {
 
 patchRepo();
 
-const devConfig = {
-  url: "http://localhost:3000"
-};
 
 const dist = (file) => path.resolve(__dirname, "dist", file);
+
+const devConfig = {
+  url: `file://${dist("index.html")}`,
+};
 
 const prodConfig = {
   url: `file://${dist("index.html")}`,
@@ -58,7 +59,8 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     show: false,
     webPreferences: {
-      webSecurity: false
+      webSecurity: false,
+      nodeIntegration: true
     }
   });
   
