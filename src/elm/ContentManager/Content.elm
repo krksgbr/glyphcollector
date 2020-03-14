@@ -15,6 +15,8 @@ import Element.Border as Border
 import Element.Events exposing (onClick)
 import Element.Font as Font
 import File exposing (File)
+import Html as H
+import Html.Attributes as HA
 import IPC.Types exposing (Avg, Image, MatchedGlyph, ProjectReq, Req(..))
 import Image exposing (Promise(..))
 import Project
@@ -137,7 +139,14 @@ viewThumbnail args =
             , spaceEvenly
             , width fill
             ]
-            [ text args.label
+            [ html <|
+                H.div
+                    [ HA.style "white-space" "nowrap"
+                    , HA.style "overflow" "hidden"
+                    , HA.style "text-overflow" "ellipsis"
+                    , HA.style "width" <| String.fromInt args.size ++ "px"
+                    ]
+                    [ H.text args.label ]
             , Button.text "x"
                 [ Custom.onClick
                     { message = args.onRemove
