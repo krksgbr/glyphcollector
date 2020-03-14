@@ -8,3 +8,4 @@ backend/.stack-work
 backend/dist*
 .elm
 backend/stack2nix-output.nix
+src/manifest.json
