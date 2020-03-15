@@ -203,17 +203,16 @@ frame model content =
                         |> Maybe.map viewError
                         |> Maybe.withDefault none
                     )
+               , inFront <|
+                   ( Release.view model.release
+                       |> Maybe.map (map ReleaseMsg)
+                       |> Maybe.withDefault none
+                   )
                , Background.color Color.background
                ]
         )
     <|
-        column
-            [ width fill, height fill ]
-            [ Release.view model.release
-                |> Maybe.map (map ReleaseMsg)
-                |> Maybe.withDefault none
-            , content
-            ]
+        content
 
 
 view : Model -> Html Msg
