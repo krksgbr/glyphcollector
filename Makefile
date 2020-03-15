@@ -52,3 +52,7 @@ dev: \
 	node_modules \
 	src/manifest.json
 	@$(NODE_BIN)/parcel watch --target electron --public-url . src/index.html
+
+.PHONY: open
+open:
+	@electron electron.js
