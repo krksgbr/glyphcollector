@@ -514,7 +514,7 @@ view project model =
                                                        )
                                                 )
                                             <|
-                                                text gn
+                                                text <| String.left 3 gn
                                         )
                         in
                         column [ width fill, height fill ]
