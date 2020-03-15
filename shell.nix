@@ -7,6 +7,7 @@ mkShell {
     elmPackages.elm
     elmPackages.elm-format
     jq
+    zip
 
     ## required by electron-forge
     dpkg
