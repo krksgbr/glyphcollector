@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b3627c9bf9235313af9b334301c0900d6003d73874b3718b42fb8543bd65969e
+-- hash: 6180474ebf7fbd8e32bdc09e03ce4519c42d10fb68854617b2355ee73dee0c2d
 
 name:           glyphcollector-backend
 version:        0.1.0.0
@@ -69,7 +69,7 @@ executable gc-core
   hs-source-dirs:
       app
   default-extensions: OverloadedStrings
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N -fno-full-laziness
+  ghc-options: -threaded -O2 -rtsopts -with-rtsopts=-N -fno-full-laziness
   extra-libraries:
       z
   build-depends:

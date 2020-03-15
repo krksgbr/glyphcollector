@@ -47,6 +47,7 @@ executables:
       - glyphcollector-backend
     ghc-options:
     - -threaded
+    - -O2
     - -rtsopts
     - -with-rtsopts=-N
     # Fixes performance regression of Massiv
