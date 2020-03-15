@@ -53,12 +53,12 @@ app.ports.updateAppSettings.subscribe(newAppSettings => {
   app.ports.appSettingsUpdated.send(newAppSettings);
 });
 
-if(process.env.NODE_ENV === "development"){
-  // Remove elm debugger this hacky way, because parcel doesn't allow for configuring this
-  // there's no id on the element, so select it in this unsafe way
-  (function r(){
-     const el = document.querySelector("[data-elm-hot='true']");
-     const toRemove = Array.from(el.children)[1].remove();
-     window.r = r;
-  })();
-}
+// Remove elm debugger this hacky way, because parcel doesn't allow for configuring this
+// there's no id on the element, so select it in this unsafe way
+(function r() {
+  const el = document.querySelector("[data-elm-hot='true']");
+  if(el){
+    const toRemove = Array.from(el.children)[1].remove();
+    window.r = r;
+  }
+})();
