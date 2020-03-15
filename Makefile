@@ -47,9 +47,6 @@ backend:
 	@$(MAKE) -C backend 
 	@mkdir -p dist
 	@cp backend/out/gc-core* dist
-ifeq ($(OS), Darwin)
-	# @node ./macos/collect-backend-deps.js --exe=$(PWD)/dist/gc-core --outdir=$(PWD)/dist
-endif
 
 
 .PHONY: dev
