@@ -14,4 +14,5 @@ fi
 
 tag=v`cat ./version`
 
+echo "uploading $file"
 ./upload-github-release-asset.sh github_api_token=$GITHUB_API_TOKEN owner=krksgbr repo=glyphcollector tag=$tag filename=$file
