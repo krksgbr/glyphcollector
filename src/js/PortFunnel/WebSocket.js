@@ -119,7 +119,6 @@ function doOpen(args) {
   socket.addEventListener("message", function(event) {
     var message = event.data;
     // console.log("Received for '" + key + "': " + message);
-    console.log(JSON.parse(message));
     sub.send(objectReturn("messageReceived", { key: key, message: message }));
   });
   socket.addEventListener("close", function(event) {
@@ -192,7 +191,6 @@ function doGetBytesQueued(args) {
 
 function doDelay(args) {
   var millis = args.millis;
-  console.log("Sleeping for", millis, " milliseconds for id: ", args.id);
   function callback() {
     sub.send(objectReturn("delayed", { id: args.id }));
   }
