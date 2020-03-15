@@ -1,6 +1,6 @@
 NODE_BIN = $(PWD)/node_modules/.bin
 OS=$(shell uname -s)
-VERSION=0.2.1
+VERSION=$(shell cat version)
 
 out: \
 	clean \
@@ -25,7 +25,7 @@ node_modules: package.json
 	@yarn
 	@touch -c node_modules
 
-src/manifest.json:
+src/manifest.json: version
 	@echo '{"version": "$(VERSION)", "os": "$(OS)"}' > $@
 
 .PHONY: package_version
