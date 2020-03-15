@@ -2,9 +2,10 @@ NODE_BIN = $(PWD)/node_modules/.bin
 OS=$(shell uname -s)
 VERSION=$(shell cat version)
 
+# no pun intended
 out: \
 	clean \
-	package_version \
+	package.json \
 	node_modules \
 	dist \
 	backend \
@@ -13,6 +14,7 @@ out: \
 	electron.js \
 	forge.config.js
 	@$(NODE_BIN)/electron-forge make
+	@touch -c out
 
 .PHONY: clean
 clean:
@@ -28,8 +30,7 @@ node_modules: package.json
 src/manifest.json: version
 	@echo '{"version": "$(VERSION)", "os": "$(OS)"}' > $@
 
-.PHONY: package_version
-package_version:
+package.json: version
 	@jq '.version = "$(VERSION)"' package.json > package.json.tmp
 	@mv package.json.tmp package.json
 
@@ -37,7 +38,8 @@ dist: \
 	node_modules \
 	$(shell find src) \
 	src/manifest.json
-	@$(NODE_BIN)/parcel build --target electron --public-url . src/index.html --out-dir $@ \
+	@$(NODE_BIN)/parcel build --target electron --public-url . src/index.html --out-dir $@
+	@touch -c dist
 
 
 .PHONY: backend
