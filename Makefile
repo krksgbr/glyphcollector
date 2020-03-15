@@ -25,11 +25,11 @@ node_modules: package.json
 	@yarn
 	@touch -c node_modules
 
-src/manifest.json: version
+src/manifest.json:
 	@echo '{"version": "$(VERSION)", "os": "$(OS)"}' > $@
 
 .PHONY: package_version
-package_version: version
+package_version:
 	@jq '.version = "$(VERSION)"' package.json > package.json.tmp
 	@mv package.json.tmp package.json
 
@@ -38,8 +38,6 @@ dist: \
 	$(shell find src) \
 	src/manifest.json
 	@$(NODE_BIN)/parcel build --target electron --public-url . src/index.html --out-dir $@ \
-
-test: $(COMMON_DEPS)
 
 
 .PHONY: backend
