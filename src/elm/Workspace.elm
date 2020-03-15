@@ -485,7 +485,7 @@ view project model =
                                             el
                                                 ([ onClick <| ReqSetView <| Collections gn
                                                  , pointer
-                                                 , Font.size 40
+                                                 , Font.size 20
                                                  , centerX
                                                  , Font.center
                                                  , paddingXY 10 10
@@ -496,8 +496,8 @@ view project model =
 
                                                     else
                                                         el
-                                                            [ Border.top 2
-                                                            , width <| px 20
+                                                            [ Border.top 1
+                                                            , width <| px 10
                                                             , height <| px 0
                                                             , centerX
                                                             ]
