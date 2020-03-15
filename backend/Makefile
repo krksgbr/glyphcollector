@@ -1,11 +1,12 @@
 OS=$(shell uname -s)
 
 EXE=
-ifeq ($(OS), WIN)
+ifneq (,$(findstring MINGW,$(OS)))
 	EXE=gc-core.exe
 else
 	EXE=gc-core
 endif
+
 
 .PHONY: build
 build: out/$(EXE)
