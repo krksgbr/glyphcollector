@@ -4,11 +4,12 @@ module ContentManager exposing
     , ViewConfig
     , closeContextMenu
     , init
+    , selectNone
     , selection
     , subscriptions
     , update
     , view
-    , selectNone)
+    )
 
 import ContentManager.Content as Content
 import ContentManager.Msg exposing (Msg(..))
@@ -51,6 +52,7 @@ init =
 
 selectNone model =
     { model | selected = Dict.empty }
+
 
 
 -- TODO solve this another way
@@ -120,10 +122,20 @@ update contentConfig msg model =
             { model | zoom = newZoom }
                 |> Return.singleton
 
-        ItemsRemoved is ->
-            model
+        ItemsRemoved items ->
+            let
+                wasRemoved k =
+                    items
+                        |> List.map contentConfig.getKey
+                        |> List.member k
+            in
+            { model
+                | selected =
+                    Dict.filter (\k _ -> not <| wasRemoved k)
+                        model.selected
+            }
                 |> Return.singleton
-                |> Return.command (contentConfig.onItemsRemoved is)
+                |> Return.command (contentConfig.onItemsRemoved items)
 
         OpenContextMenu ->
             { model | showContextMenu = True }
