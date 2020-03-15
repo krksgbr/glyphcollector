@@ -2,7 +2,21 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-file=`pwd`/`find out -name *.zip`
+OS=`uname -s`
+
+case $OS in
+	Linux)
+		ext=deb
+		;;
+	Darwin)
+		ext=zip
+		;;
+	*)
+		ext=exe
+		;;
+esac
+
+file=`pwd`/`find out -name *.$ext`
 
 basename=`basename $file`
 if [[ $basename == *"darwin"*  ]]; then
