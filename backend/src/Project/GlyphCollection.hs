@@ -52,6 +52,10 @@ data GlyphCollection = GlyphCollection { gcGlyphName :: T.Text
   deriving (Elm, ToJSON, FromJSON) via ElmStreet GlyphCollection
 
 
+isEmpty :: GlyphCollection -> Bool
+isEmpty c =
+  (List.null $ gcMatches c) && (List.null $ gcAverages c)
+
 ensureCollectionForKey :: T.Text -> [GlyphCollection] -> [GlyphCollection]
 ensureCollectionForKey key gcs =
     gcs
@@ -104,7 +108,11 @@ adjustCollection
     -> [GlyphCollection]
     -> [GlyphCollection]
 adjustCollection fn key gcs =
-    gcs & collectionsToMap & Map.adjust fn key & collectionsFromMap
+    gcs
+    & collectionsToMap
+    & Map.adjust fn key
+    & Map.filter (not . isEmpty)
+    & collectionsFromMap
 
 
 
