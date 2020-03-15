@@ -112,7 +112,7 @@ init = do
         Right (Just repo) -> return repo
   where
     initialModel :: Model
-    initialModel = RepoModel { mProjectRepo = [], mVersion = "1.0" }
+    initialModel = RepoModel { mProjectRepo = [], mVersion = "2.0" }
 
 
 mkNewProject :: CreateProjectInput -> IO Project
