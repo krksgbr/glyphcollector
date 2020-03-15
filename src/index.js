@@ -1,4 +1,4 @@
-const { shell } = require('electron')
+const { shell } = require("electron");
 const Elm = require("./elm/Main.elm").Elm;
 const manifest = require("./manifest.json");
 
@@ -11,7 +11,7 @@ const mkWebSocketFunnel = require("./js/PortFunnel/WebSocket");
 const appSettings = localStorage.getItem("appSettings");
 
 const app = Elm.Main.init({
-  node: document.getElementById('main'),
+  node: document.getElementById("main"),
   flags: {
     manifest,
     appSettings: appSettings && JSON.parse(appSettings)
@@ -24,19 +24,19 @@ PortFunnel.subscribe(app);
 mkWebSocketFunnel(PortFunnel);
 
 // FileDrop
-function sendWindowDragStart(e){
-    if(!!e.dataTransfer.files){
-       e.preventDefault();
-       app.ports.windowDragStart.send(null);
-    }
+function sendWindowDragStart(e) {
+  if (!!e.dataTransfer.files) {
+    e.preventDefault();
+    app.ports.windowDragStart.send(null);
+  }
 }
 
-function sendWindowDragEnd(){
-   app.ports.windowDragEnd.send(null);
+function sendWindowDragEnd() {
+  app.ports.windowDragEnd.send(null);
 }
 
-app.ports.dropHandled.subscribe(function(){
-    sendWindowDragEnd();
+app.ports.dropHandled.subscribe(function() {
+  sendWindowDragEnd();
 });
 
 window.addEventListener("dragenter", sendWindowDragStart);
