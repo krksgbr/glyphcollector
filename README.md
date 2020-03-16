@@ -14,7 +14,5 @@ Made possible by
 
 ## Support
 
-Development of GlyphCollector continues through volunteer effort.
-If you'd like to support the project, please consider donating through Liberapay:
-
-<a href="https://liberapay.com/glyphcollector/donate"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a>
+The development of GlyphCollector depends on the support of its users.
+If you enjoy using the app, please consider [making a donation](https://useplink.com/payment/kbEX893ImxPbV4oFV46g/).
