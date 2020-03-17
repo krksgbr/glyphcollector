@@ -1,5 +1,6 @@
 with import  ./nix/pkgs.nix {};
 mkShell {
+  ELM_HOME = (builtins.getEnv "PWD") + "/.elm";
   buildInputs = [
     electron_6
     nodejs

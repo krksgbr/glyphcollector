@@ -31,3 +31,14 @@ From the root of the repo:
 nix-shell
 electron electron.js
 ```
+
+## Compile the sources and the run app
+This can be useful if eg. you're on a non-debian based linux distro such as Arch.
+Make sure [nix](https://nixos.org/nix/) is installed and properly configured (for example [on Arch](https://wiki.archlinux.org/index.php/Nix)).
+
+Clone the repo and run these commands from the root of the glyphcollector directory:
+```
+nix-shell
+make dist
+electron .
+```
