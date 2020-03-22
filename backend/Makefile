@@ -51,7 +51,7 @@ result: \
 
 .PHONY: dev
 dev: 
-	@ghcid --test ":main" --command=stack ghci
+	@ghcid --test ":main"
 
 .PHONY: run
 run:
