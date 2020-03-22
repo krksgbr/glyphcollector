@@ -53,6 +53,10 @@ result: \
 dev: 
 	@ghcid --test ":main" --command=stack ghci
 
+.PHONY: run
+run:
+	@cabal run gc-core -- +RTS -N
+
 .PHONY: genElm
 genElm:
 	@stack run genElm
