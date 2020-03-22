@@ -18,6 +18,7 @@ make dev
 
 ```bash
 cd backend
+make stack2nix-output.nix ## sets up dependencies (only has to be done once)
 nix-shell
 make dev ## starts ghcid
 ```
