@@ -33,19 +33,25 @@ package.json: version
 	@jq '.version = "$(VERSION)"' package.json > package.json.tmp
 	@mv package.json.tmp package.json
 
+EXE=
+ifneq (,$(findstring MINGW,$(OS)))
+	EXE=gc-core.exe
+else
+	EXE=gc-core
+endif
+
+dist/$(EXE):
+	@$(MAKE) -C backend
+	@mkdir -p dist
+	@cp backend/result/bin/$(EXE) $@
+
 dist: \
 	node_modules \
 	$(shell find src) \
 	src/manifest.json \
-	dist/gc-core
+	dist/$(EXE)
 	@$(NODE_BIN)/parcel build --no-source-maps --no-content-hash --target electron --public-url . src/index.html --out-dir $@
 	@touch -c dist
-
-
-dist/gc-core:
-	@$(MAKE) -C backend
-	@mkdir -p dist
-	@cp backend/result/bin/gc-core* $@
 
 
 .PHONY: dev
