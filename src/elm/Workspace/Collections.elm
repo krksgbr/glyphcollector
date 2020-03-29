@@ -164,14 +164,16 @@ view glyphName project model =
                 |> Maybe.map .averages
                 |> Maybe.withDefault []
                 |> List.map Avg.Resolved
-                |> List.append
-                    (case project.imP.genAvgProcess of
-                        Just ( _, pendingFileName ) ->
-                            [ Avg.Pending pendingFileName ]
+                |> (\l ->
+                        l
+                            ++ (case project.imP.genAvgProcess of
+                                    Just ( _, pendingFileName ) ->
+                                        [ Avg.Pending pendingFileName ]
 
-                        Nothing ->
-                            []
-                    )
+                                    Nothing ->
+                                        []
+                               )
+                   )
     in
     column [ width fill, height fill ]
         [ row [ width fill, height fill ] <|
