@@ -24,22 +24,32 @@ type alias PowerlineConfig =
 powerline : PowerlineConfig -> Element Workspace.Msg
 powerline config =
     let
-        bg =
+        { fontColor, backgroundColor } =
             if config.active then
-                Color.accent
+                { fontColor = Color.white
+                , backgroundColor = Color.accent
+                }
+
+            else if config.onClick == Nothing then
+                { backgroundColor = Color.grey 0.3
+                , fontColor = Color.grey 0.7
+                }
 
             else
-                Color.black
+                { backgroundColor = Color.black
+                , fontColor = Color.white
+                }
     in
     row
         [ height <| px Layout.workspace.headerHeight
         , onClick <| Maybe.withDefault Workspace.NoOp config.onClick
         , pointer
+        , Font.color fontColor
         ]
         [ el
             [ height fill
             , htmlAttribute <| HA.style "position" "relative"
-            , Background.color bg
+            , Background.color backgroundColor
             ]
           <|
             el
@@ -78,7 +88,7 @@ powerline config =
                     , HA.style "position" "absolute"
                     , HA.style "top" "0"
                     , HA.style "right" "1px"
-                    , HA.style "color" <| Color.toCss <| bg
+                    , HA.style "color" <| Color.toCss <| backgroundColor
                     ]
                     []
                 ]
