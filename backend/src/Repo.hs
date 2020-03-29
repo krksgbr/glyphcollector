@@ -120,14 +120,13 @@ mkNewProject :: CreateProjectInput -> IO Project
 mkNewProject input = do
   now <- Utils.getTimestamp
   uuid <- UUID.nextRandom
-  pDirectory <- Utils.mkdirp $ T.pack $ (T.unpack $ cpDirectory input) </> (T.unpack $ cpName input)
   return $
     Project
       { pTemplates = [],
         pSources = [],
         pGlyphCollections = [],
         pName = (cpName input),
-        pDirectory = pDirectory,
+        pDirectory = (cpDirectory input),
         pCreatedAt = now,
         pUpdatedAt = now,
         pId = ProjectId $ T.pack $ UUID.toString uuid
