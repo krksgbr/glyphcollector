@@ -452,9 +452,8 @@ getDataPath projectName = do
 createImage :: DataPath -> T.Text -> IO Image
 createImage (DataPath projectDataPath) filePath = do
     imageId <- UUID.toString <$> UUID.nextRandom
-    let extension = Path.takeExtension $ T.unpack filePath
-        thumbnailPath =
-            (T.unpack projectDataPath) </> imageId <.> extension
+    let thumbnailPath =
+            (T.unpack projectDataPath) </> imageId <.> "jpg"
 
     _       <-
         Image.read
