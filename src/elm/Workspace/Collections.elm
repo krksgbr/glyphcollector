@@ -26,6 +26,7 @@ avgCMConfig =
     CM.avg
 
 
+getSelection : { a | collectionsCM : CM.Model i } -> List i
 getSelection model =
     CM.selection model.collectionsCM
 
@@ -34,14 +35,9 @@ type alias ContentManagers a =
     { a | collectionsCM : CM.Model IPC.Types.MatchedGlyph, avgCM : CM.Model Avg.Promise }
 
 
-view : String -> ProjectModel -> ContentManagers a -> Element Workspace.Msg
-view glyphName project model =
+viewNavigation : String -> ProjectModel -> Element Workspace.Msg
+viewNavigation glyphName project =
     let
-        currentCollection =
-            project.imP.collections
-                |> List.filter (\c -> c.glyphName == glyphName)
-                |> List.head
-
         chooseGlyphName =
             project.imP.collections
                 |> List.map (\c -> c.glyphName)
@@ -90,70 +86,102 @@ view glyphName project model =
                                 String.left 3 gn
                     )
     in
-    column [ width fill, height fill ]
-        [ row [ width fill, height fill ]
-            [ el
-                [ Border.right 2
-                , height fill
-                , paddingXY 10 0
-                , htmlAttribute <|
-                    HA.style "padding-top" "105px"
-                ]
-              <|
-                column
-                    [ centerX
-                    ]
-                <|
-                    chooseGlyphName
-            , el [ width fill, height fill, Border.right 2 ] <|
-                CM.view model.collectionsCM
-                    { toMsg = Workspace.CollectionsCMMsg
-                    , items =
-                        currentCollection
-                            |> Maybe.map .matches
-                            |> Maybe.withDefault []
-                    , contentConfig = cmConfig
-                    , title = "Collected Glyphs"
-                    , contextMenuItems =
-                        [ ( "Show directory"
-                          , Workspace.ShowCollectionsDirectory glyphName
-                          )
-                        ]
-                    , fileInput =
-                        CM.FileInputDisabled
-                            (text <|
-                                String.join ""
-                                    [ "Your collection of "
-                                    , glyphName
-                                    , "'s "
-                                    , "will appear here."
-                                    ]
-                            )
-                    }
-            , CM.view model.avgCM
-                { toMsg = Workspace.AvgCMMsg
-                , items =
-                    currentCollection
-                        |> Maybe.map .averages
-                        |> Maybe.withDefault []
-                        |> List.map Avg.Resolved
-                        |> List.append
-                            (case project.imP.genAvgProcess of
-                                Just ( _, pendingFileName ) ->
-                                    [ Avg.Pending pendingFileName ]
-
-                                Nothing ->
-                                    []
-                            )
-                , contentConfig = avgCMConfig
-                , contextMenuItems =
-                    [ ( "Show directory", Workspace.ShowAvgsDirectory glyphName )
-                    ]
-                , title = "Averaged Glyphs"
-                , fileInput =
-                    CM.FileInputDisabled (text "The averages your create will appear here.")
-                }
+    el
+        [ Border.right 2
+        , height fill
+        , paddingXY 10 0
+        , htmlAttribute <|
+            HA.style "padding-top" "105px"
+        ]
+    <|
+        column
+            [ centerX
             ]
+        <|
+            chooseGlyphName
+
+
+viewContentManagers glyphName matches avgs model =
+    [ el [ width fill, height fill, Border.right 2 ] <|
+        CM.view model.collectionsCM
+            { toMsg = Workspace.CollectionsCMMsg
+            , items = matches
+            , contentConfig = cmConfig
+            , title = "Collected Glyphs"
+            , contextMenuItems =
+                [ ( "Show directory"
+                  , Workspace.ShowCollectionsDirectory glyphName
+                  )
+                ]
+            , fileInput =
+                CM.FileInputDisabled
+                    (text <|
+                        String.join ""
+                            [ "Your collection of "
+                            , glyphName
+                            , "'s "
+                            , "will appear here."
+                            ]
+                    )
+            }
+    , CM.view model.avgCM
+        { toMsg = Workspace.AvgCMMsg
+        , items = avgs
+        , contentConfig = avgCMConfig
+        , contextMenuItems =
+            [ ( "Show directory", Workspace.ShowAvgsDirectory glyphName )
+            ]
+        , title = "Averaged Glyphs"
+        , fileInput =
+            CM.FileInputDisabled (text "The averages your create will appear here.")
+        }
+    ]
+
+
+viewEmpty : Element msg
+viewEmpty =
+    column [ centerY, centerX, spacing 10 ]
+        [ el [ centerX, Font.size 30 ] <| text "🤷"
+        , text "There's nothing here"
+        ]
+
+
+view : String -> ProjectModel -> ContentManagers a -> Element Workspace.Msg
+view glyphName project model =
+    let
+        currentCollection =
+            project.imP.collections
+                |> List.filter (\c -> c.glyphName == glyphName)
+                |> List.head
+
+        matches =
+            currentCollection
+                |> Maybe.map .matches
+                |> Maybe.withDefault []
+
+        avgs =
+            currentCollection
+                |> Maybe.map .averages
+                |> Maybe.withDefault []
+                |> List.map Avg.Resolved
+                |> List.append
+                    (case project.imP.genAvgProcess of
+                        Just ( _, pendingFileName ) ->
+                            [ Avg.Pending pendingFileName ]
+
+                        Nothing ->
+                            []
+                    )
+    in
+    column [ width fill, height fill ]
+        [ row [ width fill, height fill ] <|
+            case ( matches, avgs ) of
+                ( [], [] ) ->
+                    [ viewEmpty ]
+
+                _ ->
+                    viewNavigation glyphName project
+                        :: viewContentManagers glyphName matches avgs model
         , Workspace.footer
             { back = Workspace.ReqSetView Sources
             , actionLabel = "Generate Average"
