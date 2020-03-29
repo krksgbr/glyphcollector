@@ -10,6 +10,7 @@ import Element.Border as Border
 import Element.Events exposing (onClick)
 import Element.Font as Font
 import File
+import Html as H
 import Html.Attributes as HA
 import IPC.Types
     exposing
@@ -67,6 +68,7 @@ type Msg
     | ShowAvgsDirectory String
     | ShowFeedBack
     | HideFeedBack
+    | NoOp
 
 
 init : Model
@@ -246,9 +248,12 @@ update msg model =
             { model | showFeedBack = False }
                 |> Return.singleton
 
+        NoOp ->
+            model |> Return.singleton
 
-frame : ProjectModel -> Bool -> Element Msg -> Element Msg
-frame project showFeedBack e =
+
+navigation : ProjectModel -> Element Msg
+navigation project =
     let
         maybeNavToCollections =
             project.imP.collections
@@ -256,9 +261,76 @@ frame project showFeedBack e =
                 |> Maybe.map (Collections << .glyphName)
                 |> Maybe.map ReqSetView
 
-        activeRouteAttrs =
-            [ Font.underline ]
+        powerline config =
+            row
+                [ height <| px Layout.workspace.headerHeight
+                , onClick <| Maybe.withDefault NoOp config.onClick
+                , pointer
+                ]
+                [ el
+                    [ height fill
+                    , Background.color config.color
+                    , htmlAttribute <| HA.style "position" "relative"
+                    ]
+                  <|
+                    el
+                        [ centerY
+                        , paddingEach
+                            { left = Layout.global.paddingX
+                            , right = 0
+                            , top = 0
+                            , bottom = 0
+                            }
+                        ]
+                    <|
+                        text config.text
+                , html <|
+                    H.div
+                        [ HA.style "border-top" "1em solid transparent"
+                        , HA.style "border-bottom" "1em solid transparent"
+                        , HA.style "border-left" "1em solid"
+                        , HA.style "color" <| Color.toCss config.color
+                        , HA.style "position" "absolute"
+                        , HA.style "right" "-1em"
+                        , HA.style "z-index" "1"
+                        ]
+                        []
+                ]
     in
+    row
+        [ width fill
+        , Background.color Color.black
+        , Font.color Color.white
+        ]
+        ([ powerline
+            { color = Color.grey 0.2
+            , onClick = Just Close
+            , text = "Home"
+            , active = False
+            }
+         , powerline
+            { color = Color.grey 0.3
+            , onClick = Just <| ReqSetView Sources
+            , text = project.name
+            , active = True
+            }
+         , powerline
+            { color = Color.grey 0.4
+            , onClick = maybeNavToCollections
+            , text = "Collections"
+            , active = False
+            }
+         ]
+            |> (\items ->
+                    items
+                        ++ [ Button.text "Feedback" [ alignRight, onClick <| ShowFeedBack ]
+                           ]
+               )
+        )
+
+
+frame : ProjectModel -> Bool -> Element Msg -> Element Msg
+frame project showFeedBack e =
     column
         [ width fill
         , height fill
@@ -285,61 +357,7 @@ frame project showFeedBack e =
             else
                 none
         ]
-        [ row
-            [ width fill
-            , height <| px Layout.workspace.headerHeight
-            , Background.color Color.black
-            , Font.color Color.white
-            , spacing 30
-            , paddingXY Layout.global.paddingX 0
-            ]
-            ([ el [ pointer, onClick Close ] <| text "Home"
-             , el [ Font.size 20 ] <| text project.name
-             , el
-                ([ pointer
-                 , onClick <| ReqSetView Sources
-                 ]
-                    ++ (case project.view of
-                            Sources ->
-                                activeRouteAttrs
-
-                            _ ->
-                                []
-                       )
-                )
-               <|
-                text "Sources"
-             , case maybeNavToCollections of
-                Just navtoCollections ->
-                    el
-                        ([ pointer, onClick navtoCollections ]
-                            ++ (case project.view of
-                                    Collections _ ->
-                                        activeRouteAttrs
-
-                                    _ ->
-                                        []
-                               )
-                        )
-                    <|
-                        text "Collections"
-
-                Nothing ->
-                    el
-                        [ pointer
-                        , Font.color <| rgb 0.6 0.6 0.6
-                        , Cursor.notAllowed
-                        ]
-                    <|
-                        text "Results"
-             ]
-                |> List.intersperse (el [] <| text ">")
-                |> (\items ->
-                        items
-                            ++ [ Button.text "Feedback" [ alignRight, onClick <| ShowFeedBack ]
-                               ]
-                   )
-            )
+        [ navigation project
         , e
         ]
 
@@ -514,7 +532,8 @@ view project model =
                                                        )
                                                 )
                                             <|
-                                                text <| String.left 3 gn
+                                                text <|
+                                                    String.left 3 gn
                                         )
                         in
                         column [ width fill, height fill ]

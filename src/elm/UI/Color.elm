@@ -1,4 +1,4 @@
-module UI.Color exposing (accent, background, black, disabled, error, green, opacify, red, transparent, white)
+module UI.Color exposing (accent, background, black, disabled, error, green, grey, opacify, red, toCss, transparent, white)
 
 import Element exposing (Color)
 
@@ -21,6 +21,11 @@ error =
 black : Color
 black =
     Element.rgb 0 0 0
+
+
+grey : Float -> Color
+grey n =
+    Element.rgb n n n
 
 
 white : Color
@@ -54,3 +59,17 @@ opacify opacity color =
         |> Element.toRgb
         |> (\c -> { c | alpha = opacity })
         |> Element.fromRgb
+
+
+toCss color =
+    let
+        rgba =
+            Element.toRgb color
+
+        str =
+            String.fromInt << round
+
+        str255 =
+            str << (*) 255
+    in
+    "rgba(" ++ str255 rgba.red ++ "," ++ str255 rgba.green ++ "," ++ str255 rgba.blue ++ "," ++ str255 rgba.alpha ++ ")"
