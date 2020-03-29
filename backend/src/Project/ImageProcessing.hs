@@ -225,7 +225,7 @@ genAvg Ctx {..} (mg : mgs) = do
     lastSeqNum <- inferLastSeqNum outDir
     imgId      <- UUID.nextRandom
     let avg         = Image.mkAverage imgs
-        outFileName = formatFileName (T.unpack glyphName) (lastSeqNum + 1) <.> "jpg"
+        outFileName = formatFileName (T.unpack glyphName) "a" (lastSeqNum + 1) <.> "jpg"
         outFilePath = (T.unpack outDir) </> outFileName
     Image.write (T.pack outFilePath) avg
     trigger $ AvgDone $ Avg
@@ -279,8 +279,8 @@ runTemplateMatching Ctx {..} input prevCollections = do
         in  (source, template) `elem` prevMatched
 
 
-formatFileName :: String -> Int -> String
-formatFileName = printf "%s-%d"
+formatFileName :: String -> String -> Int -> String
+formatFileName = printf "%s-%s-%d"
 
 matchImages :: Image -> Image -> T.Text -> T.Text -> IO [MatchedGlyph]
 matchImages source template projectDir glyphName = do
@@ -293,7 +293,7 @@ matchImages source template projectDir glyphName = do
         foldMatch :: [MatchedGlyph] -> (Int, IPT.Result) -> IO [MatchedGlyph]
         foldMatch acc (i, (score, image)) = do
             imgId <- UUID.nextRandom
-            let outName = formatFileName (T.unpack glyphName) (i + lastSeqNum) <.> "jpg"
+            let outName = formatFileName (T.unpack glyphName) "m" (i + lastSeqNum + 1) <.> "jpg"
                 saveTo = (T.unpack outDir) </> outName
                 matchedGlyph = MatchedGlyph
                     { mgGlyphName     = glyphName
@@ -314,8 +314,10 @@ matchImages source template projectDir glyphName = do
 
 inferLastSeqNum :: T.Text -> IO Int
 inferLastSeqNum dir =
-    let digits = List.takeWhile Char.isDigit
+    let digits = List.reverse
+            . List.takeWhile (Char.isDigit)
             . List.dropWhile (not . Char.isDigit)
+            . List.reverse
     in  do
             files <- Directory.listDirectory (T.unpack dir)
             let nums :: [Int] =
