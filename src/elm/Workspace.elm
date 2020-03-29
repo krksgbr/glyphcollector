@@ -272,7 +272,7 @@ frame project showFeedBack e =
                         ]
                             |> List.map
                                 (\t ->
-                                    paragraph []
+                                    paragraph [ htmlAttribute <| HA.class "selectable" ]
                                         [ text t
                                         ]
                                 )
