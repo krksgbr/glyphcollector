@@ -1,13 +1,17 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module ImageProcessing.TemplateMatching where
 
 import Data.Function ((&))
 import qualified Data.List as List
-import Data.Massiv.Array as Massiv
+import qualified Data.Massiv.Array as M
+import Data.Massiv.Array ((!), Ix2 (..))
+import qualified Data.Maybe as Maybe
 import qualified Data.Set as Set
 import qualified ImageProcessing as Image
 
 matchMatrices ::
-  (Storable e, Default e, Floating e, Num e) =>
+  (M.Storable e, M.Default e, Floating e, Num e) =>
   Image.Matrix e ->
   Image.Matrix e ->
   Image.Matrix e
@@ -15,14 +19,14 @@ matchMatrices haystack needle =
   -- calculate the normalized cross correlation of two matrices
   -- https://www.youtube.com/watch?v=ngEC3sXeUb4
   -- https://stackoverflow.com/questions/53436231/normalized-cross-correlation-in-python
-  let stencilSize = (size needle)
+  let stencilSize = (M.size needle)
       stencilCenter = (0 :. 0)
-      templateIndices = rangeSize Seq (0 :. 0) stencilSize
-      stencil = makeStencil stencilSize stencilCenter $ \get ->
+      templateIndices = M.rangeSize M.Seq (0 :. 0) stencilSize
+      stencil = M.makeStencil stencilSize stencilCenter $ \get ->
         let -- multiply matrix a with matrix b and sum the results
             ab =
-              Massiv.sum $
-                Massiv.map
+              M.sum $
+                M.map
                   ( \ix ->
                       let s = get ix
                           t = needle ! ix
@@ -30,13 +34,13 @@ matchMatrices haystack needle =
                   )
                   templateIndices
             -- square matrix a and sum the result
-            as = Massiv.sum $ Massiv.map (\ix -> (^ 2) <$> get ix) templateIndices
+            as = M.sum $ M.map (\ix -> (^ 2) <$> get ix) templateIndices
             -- square matrix b and sum the result
-            bs = Massiv.sum $ Massiv.map (\ix -> (needle ! ix) ^ 2) templateIndices
+            bs = M.sum $ M.map (\ix -> (needle ! ix) ^ 2) templateIndices
             -- denominator of the final equation
             denom = (\a b -> sqrt (a * b)) <$> as <*> pure bs
          in (/) <$> ab <*> denom
-      correlations = computeAs S (mapStencil (Fill 0) stencil haystack)
+      correlations = M.computeAs M.S (M.mapStencil (M.Fill 0) stencil haystack)
    in correlations
 
 findInSet :: (a -> Bool) -> Set.Set a -> Maybe a
@@ -46,9 +50,9 @@ findInSet f =
         Nothing -> if f a then Just a else Nothing
    in Set.foldl foldFn Nothing
 
-filterMatches :: Sz Ix2 -> [(Double, Ix2)] -> [(Double, Ix2)]
+filterMatches :: M.Sz M.Ix2 -> [(Double, M.Ix2)] -> [(Double, M.Ix2)]
 filterMatches bounds (match : matches) =
-  let boundsIx = unSz bounds
+  let boundsIx = M.unSz bounds
       initialAcc = Set.fromList [match]
       areNeighbors (_, ix) (_, ix') = abs (ix' - ix) < boundsIx
       resultSet =
@@ -79,8 +83,8 @@ matchImages sourceImage templateImage =
       scaleFactor = getScaleFactor (Image.size templateImage)
       scaledTemplate = Image.scale scaleFactor templateImage
       scaledSource = Image.scale scaleFactor sourceImage
-      scaleIx :: RealFrac n => n -> Ix2 -> Ix2
-      scaleIx n (Ix2 i j) =
+      scaleIx :: RealFrac n => n -> M.Ix2 -> M.Ix2
+      scaleIx n (M.Ix2 i j) =
         round (fromIntegral i * n) :. round (fromIntegral j * n)
       -- not defining this will result in non-exhausting pattern-match error, why?
       scaleIx _ _ = error "Something went wrong while scaleIx"
@@ -88,8 +92,10 @@ matchImages sourceImage templateImage =
       -- so that the ix can be used to extract image from on the original source image
       unscaleIx = (scaleIx (1 / scaleFactor))
       -- extract result from sourceImage
-      extractResult ix = computeAs S $ extract' ix (size templateImage) sourceImage
-      go :: Image.Image -> Image.Image -> [(Double, Ix2)]
+      extractResult ix =
+        let ex :: Maybe Image.Image = M.computeAs M.S <$> M.extractM ix (M.size templateImage) sourceImage
+         in ex
+      go :: Image.Image -> Image.Image -> [(Double, M.Ix2)]
       go s t =
         let tMatrix = (Image.toMatrix . Image.toDouble) t
             sMatrix = (Image.toMatrix . Image.toDouble) s
@@ -97,9 +103,17 @@ matchImages sourceImage templateImage =
             -- the score threshold of 0.95 was determined experimentally
             -- seemed to work well with the image material I used for testing, but might not be optimal for other material
             -- might need to give users the option to customize this
-            ixs = ifoldMono (\ix e -> [(e, ix) | e > 0.95]) result
+            ixs = M.ifoldMono (\ix e -> [(e, ix) | e > 0.95]) result
          in ixs
    in go scaledSource scaledTemplate
         & (fmap . fmap) unscaleIx
-        & filterMatches (size templateImage)
-        & (fmap . fmap) extractResult
+        & filterMatches (M.size templateImage)
+        & ( \matches ->
+              matches
+                & fmap
+                  ( \(score, ix) -> do
+                      result <- extractResult ix
+                      return (score, result)
+                  )
+          )
+        & Maybe.catMaybes
