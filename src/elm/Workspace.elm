@@ -262,6 +262,14 @@ navigation project =
                 |> Maybe.map ReqSetView
 
         powerline config =
+            let
+                bg =
+                    if config.active then
+                        Color.accent
+
+                    else
+                        Color.black
+            in
             row
                 [ height <| px Layout.workspace.headerHeight
                 , onClick <| Maybe.withDefault NoOp config.onClick
@@ -269,15 +277,20 @@ navigation project =
                 ]
                 [ el
                     [ height fill
-                    , Background.color config.color
                     , htmlAttribute <| HA.style "position" "relative"
+                    , Background.color bg
                     ]
                   <|
                     el
                         [ centerY
                         , paddingEach
-                            { left = Layout.global.paddingX
-                            , right = 0
+                            { left =
+                                if config.first then
+                                    Layout.global.paddingX
+
+                                else
+                                    Layout.global.paddingX + 5
+                            , right = Layout.global.paddingX // 2
                             , top = 0
                             , bottom = 0
                             }
@@ -286,15 +299,28 @@ navigation project =
                         text config.text
                 , html <|
                     H.div
-                        [ HA.style "border-top" "1em solid transparent"
-                        , HA.style "border-bottom" "1em solid transparent"
-                        , HA.style "border-left" "1em solid"
-                        , HA.style "color" <| Color.toCss config.color
-                        , HA.style "position" "absolute"
+                        [ HA.style "position" "absolute"
                         , HA.style "right" "-1em"
                         , HA.style "z-index" "1"
                         ]
-                        []
+                        [ H.div
+                            [ HA.style "border-top" "1em solid transparent"
+                            , HA.style "border-bottom" "1em solid transparent"
+                            , HA.style "border-left" "1em solid"
+                            , HA.style "color" <| Color.toCss Color.white
+                            ]
+                            []
+                        , H.div
+                            [ HA.style "border-top" "1em solid transparent"
+                            , HA.style "border-bottom" "1em solid transparent"
+                            , HA.style "border-left" "1em solid"
+                            , HA.style "position" "absolute"
+                            , HA.style "top" "0"
+                            , HA.style "right" "1px"
+                            , HA.style "color" <| Color.toCss <| bg
+                            ]
+                            []
+                        ]
                 ]
     in
     row
@@ -303,27 +329,42 @@ navigation project =
         , Font.color Color.white
         ]
         ([ powerline
-            { color = Color.grey 0.2
-            , onClick = Just Close
-            , text = "Home"
+            { onClick = Just Close
+            , text = "Projects"
             , active = False
+            , first = True
             }
          , powerline
-            { color = Color.grey 0.3
-            , onClick = Just <| ReqSetView Sources
+            { onClick = Just <| ReqSetView Sources
             , text = project.name
-            , active = True
+            , active = project.view == Sources
+            , first = False
             }
          , powerline
-            { color = Color.grey 0.4
-            , onClick = maybeNavToCollections
+            { onClick = maybeNavToCollections
             , text = "Collections"
-            , active = False
+            , active =
+                case project.view of
+                    Collections _ ->
+                        True
+
+                    _ ->
+                        False
+            , first = False
             }
          ]
             |> (\items ->
                     items
-                        ++ [ Button.text "Feedback" [ alignRight, onClick <| ShowFeedBack ]
+                        ++ [ Button.text "Feedback"
+                                [ paddingEach
+                                    { top = 0
+                                    , left = 0
+                                    , right = Layout.global.paddingX
+                                    , bottom = 0
+                                    }
+                                , alignRight
+                                , onClick <| ShowFeedBack
+                                ]
                            ]
                )
         )

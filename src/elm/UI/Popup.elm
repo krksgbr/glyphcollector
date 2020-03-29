@@ -4,6 +4,7 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
+import Html.Attributes as HA
 import UI.Button as Button
 import UI.Color as Color
 
@@ -13,6 +14,7 @@ view child config =
     el
         [ width fill
         , height fill
+        , htmlAttribute <| HA.style "z-index" "999"
         , Background.color
             (Color.white
                 |> Color.opacify 0.5
