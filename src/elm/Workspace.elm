@@ -403,14 +403,34 @@ frame project showFeedBack e =
         ]
 
 
-viewFooter children =
+type alias FooterConfig msg =
+    { back : msg, action : Maybe msg, actionLabel : String }
+
+
+viewFooter : FooterConfig msg -> Element msg
+viewFooter config =
     row
         [ Border.top 2
         , height <| px Layout.workspace.footerHeight
         , width fill
         , paddingXY Layout.global.paddingX 0
         ]
-        [ row [ alignRight ] children
+        [ el [ alignLeft ] <|
+            Button.custom
+                { size = Button.Normal
+                , color = Button.Accent
+                }
+                { onPress = Just <| config.back
+                , label = text "Back"
+                }
+        , el [ alignRight ] <|
+            Button.custom
+                { size = Button.Normal
+                , color = Button.Accent
+                }
+                { onPress = config.action
+                , label = text config.actionLabel
+                }
         ]
 
 
@@ -503,23 +523,19 @@ view project model =
                                     }
                                 ]
                             , viewFooter
-                                [ Button.custom
-                                    { size = Button.Normal
-                                    , color = Button.Accent
-                                    }
-                                    { onPress =
-                                        let
-                                            selection =
-                                                getSelection model
-                                        in
-                                        if List.isEmpty selection.templates || List.isEmpty selection.sources then
-                                            Nothing
+                                { actionLabel = "Collect Glyphs"
+                                , back = Close
+                                , action =
+                                    let
+                                        selection =
+                                            getSelection model
+                                    in
+                                    if List.isEmpty selection.templates || List.isEmpty selection.sources then
+                                        Nothing
 
-                                        else
-                                            Just CollectGlyphs
-                                    , label = text "Collect glyphs"
-                                    }
-                                ]
+                                    else
+                                        Just CollectGlyphs
+                                }
                             ]
 
                     Collections glyphName ->
@@ -641,24 +657,20 @@ view project model =
                                         CM.FileInputDisabled (text "The averages your create will appear here.")
                                     }
                                 ]
-                            , viewFooter <|
-                                [ Button.custom
-                                    { size = Button.Normal
-                                    , color = Button.Accent
-                                    }
-                                    { onPress =
-                                        let
-                                            selection =
-                                                getSelection model
-                                        in
-                                        if List.isEmpty selection.collection then
-                                            Nothing
+                            , viewFooter
+                                { back = ReqSetView Sources
+                                , actionLabel = "Generate Average"
+                                , action =
+                                    let
+                                        selection =
+                                            getSelection model
+                                    in
+                                    if List.isEmpty selection.collection then
+                                        Nothing
 
-                                        else
-                                            Just GenerateAvgs
-                                    , label = text "Generate Average"
-                                    }
-                                ]
+                                    else
+                                        Just GenerateAvgs
+                                }
                             ]
 
 
