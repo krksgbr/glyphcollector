@@ -18,6 +18,7 @@ import UI.Button as Button
 import UI.Color as Color
 import UI.Layout as Layout
 import Workspace
+import Workspace.Msgs as Workspace
 
 
 type alias InitializedState =
@@ -204,10 +205,10 @@ frame model content =
                         |> Maybe.withDefault none
                     )
                , inFront <|
-                   ( Release.view model.release
-                       |> Maybe.map (map ReleaseMsg)
-                       |> Maybe.withDefault none
-                   )
+                    (Release.view model.release
+                        |> Maybe.map (map ReleaseMsg)
+                        |> Maybe.withDefault none
+                    )
                , Background.color Color.background
                ]
         )

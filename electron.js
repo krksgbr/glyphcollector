@@ -28,7 +28,8 @@ const prodConfig = {
   ]
 };
 
-const config = app.isPackaged && typeof process.env.DEVELOPMENT === "undefined" ? prodConfig : devConfig;
+const runProd = process.argv.filter(it => it === "--dev").length === 0;
+const config = app.isPackaged && runProd ? prodConfig : devConfig;
 
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -37,7 +38,6 @@ let mainWindow;
 let backend;
 
 const startBackend = (sb) => {
-    console.log("starting backend:", sb);
     const [cmd, ...args] = sb;
     backend = spawn(cmd, args);
     backend.stdout.on("data", data => {
@@ -86,7 +86,6 @@ const createWindow = () => {
 
 const start = () => {
     if (config.startBackend) {
-      console.log(config);
       startBackend(config.startBackend);
     }
     createWindow();

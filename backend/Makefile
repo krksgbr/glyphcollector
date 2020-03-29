@@ -8,8 +8,7 @@ else
 endif
 
 
-.PHONY: build
-build: out/$(EXE)
+build: result/bin/$(EXE)
 
 STACK_LOCAL_INSTALL_ROOT=$(shell stack path --local-install-root)
 STACK_EXE=$(STACK_LOCAL_INSTALL_ROOT)/bin/$(EXE)
@@ -24,15 +23,13 @@ $(STACK_EXE): \
 stack_exe: $(STACK_EXE)
 
 ifeq ($(OS), Linux)
-out/$(EXE): \
+result/bin/$(EXE): \
 	stack2nix-output.nix \
 	src
 	@$$(nix-build --no-link -A buildScript --out-link result)
-	@mkdir -p out
-	@cp result/bin/gc-core $@
 else
-out/$(EXE): stack_exe
-	@mkdir -p out
+result/bin/$(EXE): stack_exe
+	@mkdir -p result/bin/
 	@cp $(STACK_EXE) $@
 endif
 
@@ -54,7 +51,20 @@ result: \
 
 .PHONY: dev
 dev: 
-	@ghcid --test ":main" --command=stack ghci
+	@ghcid --test ":main"
+
+.PHONY: run
+run:
+	@cabal run gc-core -- +RTS -N
+
+# Related GitHub issue and comment:
+# https://github.com/NixOS/nixpkgs/issues/56860#issuecomment-596092804
+CABAL_EXTRA_LIB_DIRS = $(shell tr <<< "$(NIX_LDFLAGS)" ' ' '\n' | sed 's|-L|--extra-lib-dirs=|;t;d')
+
+.PHONY: repl
+repl:
+	@cabal repl $(CABAL_EXTRA_LIB_DIRS)
+
 
 .PHONY: genElm
 genElm:

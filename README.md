@@ -5,6 +5,11 @@
 
 GlyphCollector is a desktop application for typeface revival projects both as a production and research tool.
 
+<img width="1440" alt="Screenshot 2019-08-28 at 13 50 08" src="https://user-images.githubusercontent.com/7548374/76715539-1a42dc00-672d-11ea-87b0-69858e636de7.png">
+<img width="1440" alt="Screenshot 2019-08-28 at 13 51 23" src="https://user-images.githubusercontent.com/7548374/76715544-1f079000-672d-11ea-8cab-a4e6bbd6539e.png">
+<img width="1440" alt="Screenshot 2019-08-28 at 13 54 08" src="https://user-images.githubusercontent.com/7548374/76715545-2038bd00-672d-11ea-9db2-093b47a786fa.png">
+
+
 
 Made possible by 
 
@@ -14,7 +19,5 @@ Made possible by
 
 ## Support
 
-Development of GlyphCollector continues through volunteer effort.
-If you'd like to support the project, please consider donating through Liberapay:
-
-<a href="https://liberapay.com/glyphcollector/donate"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a>
+The development of GlyphCollector depends on the support of its users.
+If you enjoy using the app, please consider [making a donation](https://useplink.com/payment/kbEX893ImxPbV4oFV46g/).

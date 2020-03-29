@@ -8,7 +8,6 @@ out: \
 	package.json \
 	node_modules \
 	dist \
-	backend \
 	$(shell find icons) \
 	$(shell find patch-repo) \
 	electron.js \
@@ -37,16 +36,16 @@ package.json: version
 dist: \
 	node_modules \
 	$(shell find src) \
-	src/manifest.json
-	@$(NODE_BIN)/parcel build --target electron --public-url . src/index.html --out-dir $@
+	src/manifest.json \
+	dist/gc-core
+	@$(NODE_BIN)/parcel build --no-source-maps --no-content-hash --target electron --public-url . src/index.html --out-dir $@
 	@touch -c dist
 
 
-.PHONY: backend
-backend:
-	@$(MAKE) -C backend 
+dist/gc-core:
+	@$(MAKE) -C backend
 	@mkdir -p dist
-	@cp backend/out/gc-core* dist
+	@cp backend/result/bin/gc-core* $@
 
 
 .PHONY: dev
@@ -57,4 +56,4 @@ dev: \
 
 .PHONY: open
 open:
-	@electron electron.js
+	@electron electron.js --dev
