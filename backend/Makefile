@@ -57,6 +57,15 @@ dev:
 run:
 	@cabal run gc-core -- +RTS -N
 
+# Related GitHub issue and comment:
+# https://github.com/NixOS/nixpkgs/issues/56860#issuecomment-596092804
+CABAL_EXTRA_LIB_DIRS = $(shell tr <<< "$(NIX_LDFLAGS)" ' ' '\n' | sed 's|-L|--extra-lib-dirs=|;t;d')
+
+.PHONY: repl
+repl:
+	@cabal repl $(CABAL_EXTRA_LIB_DIRS)
+
+
 .PHONY: genElm
 genElm:
 	@stack run genElm
