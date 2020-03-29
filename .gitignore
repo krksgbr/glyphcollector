@@ -9,3 +9,4 @@ backend/dist*
 .elm
 backend/stack2nix-output.nix
 src/manifest.json
+.dir-locals.el
